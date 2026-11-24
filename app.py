@@ -195,6 +195,9 @@ def parse_spotify_playlist(url):
 
 @app.route("/")
 def index():
+    root_html = os.path.join(BASE_DIR, "index.html")
+    if os.path.exists(root_html):
+        return send_file(root_html)
     return render_template("index.html")
 
 
