@@ -1,0 +1,3183 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#111111" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/png" href="/logo.png" />
+  <link rel="apple-touch-icon" href="/icon-192.png" />
+  <title>Streamify Audio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=League+Spartan:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg-base: #111111;
+      --bg-surface: #181818;
+      --bg-elevated: #222222;
+      --bg-hover: #2c2c2c;
+      --text-primary: #ffffff;
+      --text-secondary: #a8a8a8;
+      --accent: #1db954;
+      --accent-hover: #1ed760;
+      --danger: #f15e6c;
+      --player-height: 82px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'League Spartan', -apple-system, BlinkMacSystemFont, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-base);
+      color: var(--text-primary);
+      height: 100dvh;
+      width: 100%;
+      max-width: 100vw;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    svg {
+      display: block;
+      flex-shrink: 0;
+    }
+
+    /* Üst Gezinme Çubuğu */
+    .topbar {
+      height: 58px;
+      padding: 0 12px;
+      width: 100%;
+      max-width: 100vw;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      background: rgba(17, 17, 17, 0.96);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      z-index: 30;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+
+    .brand-btn {
+      background: none;
+      border: none;
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1.2rem;
+      font-weight: 800;
+      letter-spacing: -0.4px;
+      cursor: pointer;
+      min-width: 0;
+      flex-shrink: 1;
+    }
+
+    .brand-btn span:last-child {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .brand-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: var(--accent);
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .brand-badge.has-custom-logo {
+      background: transparent;
+    }
+
+    .brand-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 10px;
+      display: block;
+    }
+
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      flex-shrink: 0;
+    }
+
+    .search-icon-btn {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      flex-shrink: 0;
+      transition: all 0.18s ease;
+    }
+
+    .search-icon-btn.active {
+      background: rgba(29, 185, 84, 0.2);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .offline-toggle {
+      background: var(--bg-elevated);
+      color: var(--text-secondary);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 99px;
+      padding: 6px 9px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      transition: all 0.2s ease;
+    }
+
+    .offline-toggle.active {
+      background: rgba(29, 185, 84, 0.18);
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .offline-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: #666;
+      flex-shrink: 0;
+    }
+
+    .offline-toggle.active .offline-dot {
+      background: var(--accent);
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .nav-home-pill {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 99px;
+      padding: 6px 9px;
+      font-size: 0.76rem;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      transition: background 0.15s, transform 0.12s;
+    }
+
+    .nav-home-pill:hover { background: var(--bg-hover); }
+    .nav-home-pill:active { transform: scale(0.97); }
+
+    /* Üst Bar Hemen Altında Açılan Canlı Arama Alanı */
+    .search-drawer {
+      display: none;
+      width: 100%;
+      background: #161616;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.09);
+      padding: 10px 14px 12px;
+      z-index: 25;
+      flex-shrink: 0;
+      box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
+      animation: slideDown 0.18s ease;
+    }
+
+    .search-drawer.open {
+      display: block;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .search-drawer-inner {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .live-search-box {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--bg-elevated);
+      border: 1px solid rgba(29, 185, 84, 0.45);
+      border-radius: 14px;
+      padding: 0 12px;
+      height: 44px;
+    }
+
+    .live-search-box input {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: none;
+      color: #fff;
+      font-size: 0.96rem;
+      outline: none;
+    }
+
+    .search-clear-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      cursor: pointer;
+      padding: 4px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .search-results-list {
+      margin-top: 8px;
+      max-height: 52dvh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .search-results-list:empty {
+      display: none;
+    }
+
+    .search-result-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      cursor: pointer;
+      transition: background 0.14s;
+    }
+
+    .search-result-row:hover {
+      background: var(--bg-elevated);
+    }
+
+    .search-result-thumb {
+      width: 44px;
+      height: 44px;
+      border-radius: 9px;
+      object-fit: cover;
+      background: #222;
+      flex-shrink: 0;
+    }
+
+    .search-result-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .search-result-title {
+      font-size: 0.93rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .search-result-sub {
+      font-size: 0.79rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    /* Ana Kaydırma Alanı */
+    .page-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px 16px calc(var(--player-height) + 28px);
+      background: radial-gradient(circle at top left, #1c2e23 0%, var(--bg-base) 340px);
+    }
+
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .view-section {
+      display: none;
+      animation: fadeIn 0.22s ease;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Bulut Sunucu Uyanma & Çevrimdışı Şeritleri */
+    .server-wake-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      background: rgba(255, 222, 89, 0.12);
+      border: 1px solid rgba(255, 222, 89, 0.38);
+      border-radius: 14px;
+      padding: 10px 14px;
+      margin-bottom: 14px;
+      font-size: 0.84rem;
+      color: #fff3c4;
+    }
+
+    .server-wake-banner.visible {
+      display: flex;
+    }
+
+    .wake-termux-btn {
+      background: #ffde59;
+      color: #111;
+      border: none;
+      border-radius: 99px;
+      padding: 7px 12px;
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .offline-banner {
+      display: none;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 10px;
+      background: rgba(29, 185, 84, 0.12);
+      border: 1px solid rgba(29, 185, 84, 0.35);
+      border-radius: 14px;
+      padding: 11px 14px;
+      margin-bottom: 18px;
+      font-size: 0.85rem;
+      color: #d9f7e3;
+    }
+
+    .offline-banner.visible {
+      display: flex;
+    }
+
+    .pwa-install-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 99px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    /* Hızlı Link Aktarma Kutusu */
+    .import-card {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 24px;
+    }
+
+    .import-card-title {
+      font-size: 1.02rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--text-primary);
+    }
+
+    .url-form {
+      display: flex;
+      gap: 8px;
+    }
+
+    .url-input-wrap {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--bg-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 14px;
+      padding: 0 14px;
+      min-width: 0;
+    }
+
+    .url-input-wrap:focus-within {
+      border-color: var(--accent);
+    }
+
+    .url-input-wrap input {
+      flex: 1;
+      min-width: 0;
+      background: none;
+      border: none;
+      color: #fff;
+      padding: 12px 0;
+      font-size: 0.94rem;
+      outline: none;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: 14px;
+      padding: 0 16px;
+      height: 44px;
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: transform 0.12s, background 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-primary:active { transform: scale(0.97); }
+    .btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      color: var(--text-primary);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 14px;
+      padding: 8px 14px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: background 0.15s, transform 0.12s;
+      white-space: nowrap;
+    }
+
+    .btn-secondary:hover { background: var(--bg-hover); }
+    .btn-secondary:active { transform: scale(0.97); }
+
+    /* Bölüm Başlığı, Yeni Playlist ve Karışık Çal */
+    .section-header {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .section-header h2 {
+      font-size: 1.48rem;
+      font-weight: 800;
+      letter-spacing: -0.3px;
+    }
+
+    .create-pl-inline {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .create-pl-inline input {
+      background: var(--bg-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: #fff;
+      padding: 8px 11px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      width: 145px;
+      min-width: 110px;
+      height: 38px;
+      outline: none;
+    }
+
+    .create-pl-inline input:focus {
+      border-color: var(--accent);
+    }
+
+    .global-shuffle-btn {
+      height: 38px;
+      padding: 0 13px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      border-color: rgba(29, 185, 84, 0.4);
+      color: var(--accent);
+    }
+
+    /* Ana Sayfa Eşit Boyutlu Playlist Kartları Izgarası */
+    .playlist-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+      gap: 14px;
+      align-items: stretch;
+    }
+
+    .pl-card {
+      background: var(--bg-surface);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 12px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .pl-card.favorites-card {
+      border-color: rgba(29, 185, 84, 0.28);
+      background: linear-gradient(160deg, rgba(29, 185, 84, 0.12) 0%, var(--bg-surface) 60%);
+    }
+
+    .pl-card:hover {
+      background: var(--bg-elevated);
+      transform: translateY(-2px);
+    }
+
+    .pl-cover-box {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 12px;
+      overflow: hidden;
+      background: linear-gradient(135deg, #243b2e, #181818);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+      margin-bottom: 10px;
+      flex-shrink: 0;
+    }
+
+    .pl-cover-single {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .pl-cover-collage {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      width: 100%;
+      height: 100%;
+    }
+
+    .pl-cover-collage img {
+      width: 100%;
+      height: 100%;
+      min-width: 0;
+      min-height: 0;
+      object-fit: cover;
+    }
+
+    .pl-cover-empty {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--accent);
+    }
+
+    .card-quick-play {
+      position: absolute;
+      right: 8px;
+      bottom: 8px;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      background: var(--accent);
+      color: #000;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .card-quick-play:hover {
+      transform: scale(1.08);
+      background: var(--accent-hover);
+    }
+
+    .pl-card-footer {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      min-width: 0;
+    }
+
+    .pl-card-title {
+      font-size: 1rem;
+      font-weight: 700;
+      line-height: 1.25;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .pl-card-sub {
+      font-size: 0.82rem;
+      line-height: 1.2;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Playlist Detay Sayfası */
+    .detail-top-actions {
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      min-height: 36px;
+      margin-bottom: 8px;
+    }
+
+    .detail-hero {
+      display: flex;
+      align-items: flex-end;
+      gap: 22px;
+      margin-bottom: 22px;
+    }
+
+    .detail-cover {
+      width: 180px;
+      height: 180px;
+      border-radius: 18px;
+      overflow: hidden;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #243b2e, #181818);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.55);
+    }
+
+    .detail-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .detail-badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+
+    .detail-title {
+      font-size: 2.1rem;
+      font-weight: 800;
+      line-height: 1.12;
+      margin-bottom: 8px;
+      word-break: break-word;
+    }
+
+    .detail-stats {
+      color: var(--text-secondary);
+      font-size: 0.92rem;
+      margin-bottom: 16px;
+    }
+
+    .detail-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .detail-actions .btn-primary,
+    .detail-actions .btn-secondary {
+      height: 44px;
+      border-radius: 22px;
+      padding: 0 20px;
+      font-size: 0.95rem;
+    }
+
+    /* Şarkı Satırları */
+    .track-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .track-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 10px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.03);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+
+    .track-row:hover { background: var(--bg-elevated); }
+    .track-row.playing {
+      background: rgba(29, 185, 84, 0.15);
+      border: 1px solid rgba(29, 185, 84, 0.35);
+    }
+
+    .track-num {
+      width: 20px;
+      text-align: center;
+      font-size: 0.86rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .track-row.playing .track-num { color: var(--accent); }
+
+    .track-thumb {
+      width: 46px;
+      height: 46px;
+      border-radius: 10px;
+      object-fit: cover;
+      background: #1c1c1c;
+      flex-shrink: 0;
+    }
+
+    .track-info { flex: 1; min-width: 0; }
+    .track-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .track-row.playing .track-title { color: var(--accent); }
+
+    .track-artist {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .offline-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      background: rgba(29, 185, 84, 0.18);
+      color: var(--accent);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 99px;
+      flex-shrink: 0;
+    }
+
+    .track-row-actions {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      flex-shrink: 0;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      padding: 6px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: color 0.15s, background 0.15s, transform 0.1s;
+    }
+
+    .icon-btn:hover { color: var(--text-primary); background: rgba(255, 255, 255, 0.07); }
+    .icon-btn.active,
+    .icon-btn.downloaded,
+    .icon-btn.favorited,
+    .icon-btn.in-playlist {
+      color: var(--accent);
+    }
+    .icon-btn.danger:hover { color: var(--danger); }
+
+    /* Liste Seçici Modal */
+    .picker-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.72);
+      backdrop-filter: blur(6px);
+      z-index: 420;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .picker-backdrop.open {
+      display: flex;
+      animation: fadeIn 0.16s ease;
+    }
+
+    @media (min-width: 641px) {
+      .picker-backdrop {
+        align-items: center;
+      }
+    }
+
+    .picker-card {
+      width: 100%;
+      max-width: 440px;
+      background: #1b1b1b;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      padding: 18px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      max-height: 82dvh;
+    }
+
+    .picker-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .picker-header h3 {
+      font-size: 1.15rem;
+      font-weight: 800;
+    }
+
+    .picker-track-preview {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.04);
+      border-radius: 12px;
+      padding: 8px 10px;
+    }
+
+    .picker-track-preview img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .picker-track-preview-meta {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .picker-track-preview-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .picker-track-preview-artist {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .picker-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      overflow-y: auto;
+      max-height: 42dvh;
+    }
+
+    .picker-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 12px;
+      border-radius: 13px;
+      background: var(--bg-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--text-primary);
+      cursor: pointer;
+      text-align: left;
+      transition: background 0.14s, border-color 0.14s;
+    }
+
+    .picker-item.selected {
+      border-color: rgba(29, 185, 84, 0.55);
+      background: rgba(29, 185, 84, 0.1);
+    }
+
+    .picker-item:hover {
+      background: var(--bg-hover);
+      border-color: rgba(29, 185, 84, 0.45);
+    }
+
+    .picker-item-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+      flex: 1;
+    }
+
+    .picker-item-thumb {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+      background: #141414;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+      color: var(--accent);
+    }
+
+    .picker-item-thumb img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .picker-item-name {
+      font-size: 0.95rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .picker-item-count {
+      font-size: 0.78rem;
+      color: var(--text-secondary);
+    }
+
+    .picker-item-badge {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent);
+      background: rgba(29, 185, 84, 0.18);
+      padding: 4px 9px;
+      border-radius: 99px;
+      flex-shrink: 0;
+    }
+
+    .picker-new-row {
+      display: flex;
+      gap: 8px;
+      padding-top: 4px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .picker-new-row input {
+      flex: 1;
+      min-width: 0;
+      background: var(--bg-elevated);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      padding: 9px 12px;
+      color: #fff;
+      font-size: 0.9rem;
+      outline: none;
+    }
+
+    /* Alt Mini Oynatıcı */
+    .player-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: var(--player-height);
+      background: #1a1a1a;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      gap: 12px;
+      z-index: 100;
+      cursor: pointer;
+    }
+
+    .now-playing {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .now-playing img {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      object-fit: cover;
+      background: #222;
+    }
+
+    .now-playing-meta { min-width: 0; flex: 1; }
+    .now-playing-title {
+      font-size: 0.96rem;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .now-playing-artist {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .mini-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .play-circle-btn {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.12s;
+    }
+
+    .play-circle-btn:active { transform: scale(0.94); }
+
+    .desktop-progress {
+      flex: 1.3;
+      max-width: 430px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    /* Spotify Tarzı Tam Ekran Oynatıcı */
+    .full-player {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(180deg, #22382b 0%, #121212 58%, #090909 100%);
+      z-index: 300;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 20px 24px 34px;
+      transform: translateY(100%);
+      transition: transform 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+      pointer-events: none;
+    }
+
+    .full-player.open {
+      transform: translateY(0);
+      pointer-events: auto;
+    }
+
+    .fp-top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .fp-round-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #fff;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+    }
+
+    .fp-header-info {
+      text-align: center;
+    }
+
+    .fp-header-info span {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .fp-header-info strong {
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .fp-artwork-wrap {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 14px 0;
+    }
+
+    .fp-artwork {
+      width: min(76vw, 320px);
+      height: min(76vw, 320px);
+      border-radius: 20px;
+      object-fit: cover;
+      box-shadow: 0 18px 45px rgba(0, 0, 0, 0.65);
+      background: #181818;
+    }
+
+    .fp-bottom {
+      max-width: 460px;
+      width: 100%;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .fp-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .fp-meta {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .fp-meta h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fp-meta p {
+      font-size: 0.98rem;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .fp-meta-actions {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      flex-shrink: 0;
+    }
+
+    .fp-progress {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .fp-times {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+
+    .fp-controls {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 4px;
+    }
+
+    .fp-play-big {
+      width: 66px;
+      height: 66px;
+      border-radius: 50%;
+      background: #ffffff;
+      color: #000000;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+    }
+
+    .fp-volume-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255, 255, 255, 0.05);
+      padding: 8px 14px;
+      border-radius: 16px;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(255, 255, 255, 0.22);
+      height: 5px;
+      border-radius: 99px;
+      cursor: pointer;
+      flex: 1;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px;
+      height: 15px;
+      border-radius: 50%;
+      background: #ffffff;
+    }
+
+    .toast {
+      position: fixed;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: #000;
+      font-weight: 700;
+      padding: 10px 18px;
+      border-radius: 99px;
+      font-size: 0.88rem;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+      z-index: 550;
+      white-space: nowrap;
+      max-width: 92vw;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .toast.show { opacity: 1; }
+
+    .spin {
+      animation: spin 0.9s linear infinite;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 640px) {
+      .desktop-progress { display: none; }
+      .create-pl-inline {
+        width: 100%;
+      }
+      .create-pl-inline input {
+        flex: 1;
+        width: auto;
+      }
+      .detail-hero {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .detail-cover {
+        width: 170px;
+        height: 170px;
+      }
+      .detail-title { font-size: 1.75rem; }
+      .detail-actions { justify-content: center; }
+      .playlist-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .topbar { padding: 0 10px; }
+      .brand-btn { font-size: 1.08rem; gap: 6px; }
+      .brand-badge { width: 28px; height: 28px; }
+      .search-icon-btn { width: 30px; height: 30px; }
+      .offline-toggle, .nav-home-pill { padding: 5px 8px; font-size: 0.72rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="toast" id="toast">Bildirim</div>
+
+  <!-- Çift Ses Motoru -->
+  <audio id="audioPlayer" preload="auto"></audio>
+  <audio id="preloadPlayer" preload="auto"></audio>
+
+  <!-- Çalma Listesi Seçici Modal (+ Butonuna Basılınca Açılır) -->
+  <div class="picker-backdrop" id="playlistPickerModal" onclick="closePlaylistPicker(event)">
+    <div class="picker-card" onclick="event.stopPropagation()">
+      <div class="picker-header">
+        <h3>Çalma Listelerini Seç</h3>
+        <button class="icon-btn" id="pickerCloseBtn" onclick="closePlaylistPicker()"></button>
+      </div>
+      <div class="picker-track-preview" id="pickerTrackPreview"></div>
+      <div class="picker-list" id="pickerPlaylistItems"></div>
+      <div class="picker-new-row">
+        <input type="text" id="pickerNewPlaylistInput" placeholder="Yeni liste oluştur ve ekle..." />
+        <button class="btn-primary" style="height:38px;padding:0 14px" onclick="createPlaylistAndAddTrack()">Oluştur</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Üst Başlık (Sizin Logonuzla) -->
+  <header class="topbar">
+    <button class="brand-btn" onclick="goHome()">
+      <span class="brand-badge has-custom-logo" id="brandIcon">
+        <img
+          src="/logo.png"
+          alt="Logo"
+          onerror="this.parentElement.classList.remove('has-custom-logo'); this.parentElement.innerHTML = ICONS.wave;"
+        />
+      </span>
+      <span>Streamify</span>
+    </button>
+
+    <div class="topbar-right">
+      <button class="search-icon-btn" id="searchToggleBtn" onclick="toggleSearchDrawer()" title="Şarkı Ara"></button>
+      <button class="offline-toggle" id="offlineToggleBtn" onclick="toggleOfflineMode()">
+        <span class="offline-dot"></span>
+        <span>Çevrimdışı</span>
+      </button>
+      <button class="nav-home-pill" id="homeNavBtn" style="display:none" onclick="goHome()">
+        <span id="navHomeIcon"></span>
+        <span>Ana Sayfa</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Üst Barın Hemen Altında Açılan Canlı Arama Alanı -->
+  <div class="search-drawer" id="topSearchDrawer">
+    <div class="search-drawer-inner">
+      <div class="live-search-box">
+        <span id="drawerSearchIcon"></span>
+        <input
+          type="text"
+          id="globalSearchInput"
+          placeholder="Şarkı veya sanatçı adı yazın..."
+          autocomplete="off"
+          oninput="handleLiveSearchInput(this.value)"
+          onkeydown="handleSearchKeydown(event)"
+        />
+        <span id="searchSpinner" style="display:none"></span>
+        <button class="search-clear-btn" id="searchClearBtn" onclick="clearLiveSearch()" title="Temizle"></button>
+      </div>
+      <div class="search-results-list" id="searchResultsList"></div>
+    </div>
+  </div>
+
+  <!-- Ana İçerik Alanı -->
+  <div class="page-scroll">
+    <div class="container">
+
+      <!-- Bulut Sunucu Uyanma Durumu Şeridi (Yalnızca Çevrimiçi Moddayken Görünür) -->
+      <div class="server-wake-banner" id="serverWakeBanner">
+        <span>Bulut sunucu uyandırılıyor, birkaç saniye içinde otomatik bağlanacak...</span>
+        <button class="wake-termux-btn" onclick="checkOnlineAndServerStatus(true)">Kontrol Et</button>
+      </div>
+
+      <!-- Çevrimdışı Mod & PWA Yükleme Şeridi -->
+      <div class="offline-banner" id="offlineBanner">
+        <span id="offlineBannerText">Çevrimdışı mod açık: İndirilen şarkılar internetsiz bile çalar.</span>
+        <button class="pwa-install-btn" id="pwaInstallBtn" style="display:none" onclick="triggerPwaInstall()">
+          Ana Ekrana Ekle
+        </button>
+      </div>
+
+      <!-- SAYFA 1: ANA SAYFA -->
+      <section id="homeView" class="view-section active">
+        <div class="import-card">
+          <div class="import-card-title">
+            <span id="linkHeaderIcon"></span>
+            <span>YouTube veya Spotify Bağlantısı Ekle</span>
+          </div>
+          <form class="url-form" onsubmit="handleImportUrl(event, null)">
+            <div class="url-input-wrap">
+              <input
+                type="text"
+                id="homeUrlInput"
+                placeholder="YouTube şarkı, YouTube playlist veya Spotify playlist linki..."
+                required
+              />
+            </div>
+            <button type="submit" class="btn-primary" id="homeImportBtn">Aktar</button>
+          </form>
+        </div>
+
+        <div class="section-header">
+          <h2>Çalma Listelerim</h2>
+          <div class="create-pl-inline">
+            <input type="text" id="newPlaylistInput" placeholder="Yeni liste adı..." />
+            <button class="btn-primary" style="height:38px;padding:0 13px" onclick="createPlaylist()">
+              <span id="plusIcon"></span>
+              <span>Oluştur</span>
+            </button>
+            <button class="btn-secondary global-shuffle-btn" onclick="playGlobalShuffle()" title="Favoriler ve tüm listelerden karışık çal">
+              <span id="homeGlobalShuffleIcon"></span>
+              <span>Karışık Çal</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="playlist-grid" id="playlistGrid"></div>
+      </section>
+
+      <!-- SAYFA 2: PLAYLIST DETAY SAYFASI -->
+      <section id="playlistView" class="view-section">
+        <div class="detail-top-actions">
+          <button class="icon-btn danger" id="deletePlaylistBtn" onclick="deleteCurrentPlaylist()" title="Listeyi Sil"></button>
+        </div>
+
+        <div class="detail-hero">
+          <div class="detail-cover" id="detailCoverBox"></div>
+          <div class="detail-meta">
+            <span class="detail-badge" id="detailBadgeText">Çalma Listesi</span>
+            <h1 class="detail-title" id="detailTitle">Favorilerim</h1>
+            <p class="detail-stats" id="detailStats">0 şarkı</p>
+            <div class="detail-actions">
+              <button class="btn-primary" onclick="playPlaylistNormal()">
+                <span id="detailPlayIcon"></span>
+                <span>Çal</span>
+              </button>
+              <button class="btn-secondary" onclick="playPlaylistShuffled()">
+                <span id="detailShuffleIcon"></span>
+                <span>Karışık Çal</span>
+              </button>
+              <button class="btn-secondary" id="downloadAllBtn" style="display:none" onclick="toggleBatchDownload()">
+                <span id="detailDownloadAllIcon"></span>
+                <span id="downloadAllLabel">Tümünü İndir</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <form class="url-form" style="margin-bottom:20px" onsubmit="handleImportUrl(event, currentDetailPlaylistId)">
+          <div class="url-input-wrap">
+            <input
+              type="text"
+              id="detailUrlInput"
+              placeholder="Bu listeye YouTube şarkı veya playlist linki..."
+              required
+            />
+          </div>
+          <button type="submit" class="btn-primary" id="detailImportBtn">Ekle</button>
+        </form>
+
+        <div class="track-list" id="detailTrackList"></div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- Alt Mini Oynatıcı -->
+  <footer class="player-bar" onclick="openFullPlayer()">
+    <div class="now-playing">
+      <img id="npThumb" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23181818'%3E%3Crect width='100' height='100'/%3E%3C/svg%3E" alt="Kapak" />
+      <div class="now-playing-meta">
+        <div class="now-playing-title" id="npTitle">Şarkı seçilmedi</div>
+        <div class="now-playing-artist" id="npArtist">Tam ekran için dokunun</div>
+      </div>
+    </div>
+
+    <div class="desktop-progress" onclick="event.stopPropagation()">
+      <span id="currentTime">0:00</span>
+      <input type="range" id="seekBar" value="0" min="0" max="100" oninput="seekTrack(this.value)" />
+      <span id="durationTime">0:00</span>
+    </div>
+
+    <div class="mini-controls" onclick="event.stopPropagation()">
+      <button class="icon-btn" id="miniPrevBtn" onclick="playPrev()" title="Önceki"></button>
+      <button class="play-circle-btn" id="playPauseBtn" onclick="togglePlay()"></button>
+      <button class="icon-btn" id="miniNextBtn" onclick="playNext()" title="Sonraki"></button>
+    </div>
+  </footer>
+
+  <!-- Spotify Tarzı Tam Ekran Oynatıcı -->
+  <div class="full-player" id="fullPlayerOverlay">
+    <div class="fp-top-bar">
+      <button class="fp-round-btn" id="fpCloseBtn" onclick="closeFullPlayer()" title="Küçült"></button>
+      <div class="fp-header-info">
+        <span>Çalma Listesinden Çalınıyor</span>
+        <strong id="fpPlaylistName">Favorilerim</strong>
+      </div>
+      <div style="width:40px"></div>
+    </div>
+
+    <div class="fp-artwork-wrap">
+      <img class="fp-artwork" id="fpThumb" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320' fill='%23181818'%3E%3Crect width='320' height='320'/%3E%3C/svg%3E" alt="Albüm Kapağı" />
+    </div>
+
+    <div class="fp-bottom">
+      <div class="fp-meta-row">
+        <div class="fp-meta">
+          <h2 id="fpTitle">Şarkı seçilmedi</h2>
+          <p id="fpArtist">Sanatçı bilgisi</p>
+        </div>
+        <div class="fp-meta-actions">
+          <button class="icon-btn" id="fpAddToListBtn" onclick="handlePlusButtonForActiveTrack()" title="Listeye Ekle / Kaldır"></button>
+          <button class="icon-btn" id="fpFavoriteBtn" onclick="toggleFavoriteCurrentPlayingTrack()" title="Favorilere Ekle/Çıkar"></button>
+          <button class="icon-btn" id="fpDownloadBtn" onclick="downloadCurrentPlayingTrack()" title="Cihaza İndir"></button>
+        </div>
+      </div>
+
+      <div class="fp-progress">
+        <input type="range" id="fpSeekBar" value="0" min="0" max="100" oninput="seekTrack(this.value)" />
+        <div class="fp-times">
+          <span id="fpCurrentTime">0:00</span>
+          <span id="fpDurationTime">0:00</span>
+        </div>
+      </div>
+
+      <div class="fp-controls">
+        <button class="icon-btn" id="fpShuffleBtn" onclick="toggleShuffle()" title="Karıştır"></button>
+        <button class="icon-btn" id="fpPrevBtn" onclick="playPrev()" title="Önceki"></button>
+        <button class="fp-play-big" id="fpPlayPauseBtn" onclick="togglePlay()"></button>
+        <button class="icon-btn" id="fpNextBtn" onclick="playNext()" title="Sonraki"></button>
+        <button class="icon-btn" id="fpRepeatBtn" onclick="toggleRepeat()" title="Tekrarla"></button>
+      </div>
+
+      <div class="fp-volume-row">
+        <button class="icon-btn" id="volumeIconBtn" onclick="toggleMute()" title="Sesi Kapat/Aç"></button>
+        <input type="range" id="volumeSlider" value="85" min="0" max="100" oninput="setVolume(this.value)" />
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const ICONS = {
+      wave: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 10v4M8 7v10M12 4v16M16 7v10M20 10v4"/></svg>`,
+      search: (size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>`,
+      closeX: (size = 16) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>`,
+      heart: (filled = false, size = 18) => filled
+        ? `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="#1db954" stroke="#1db954" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`
+        : `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`,
+      music: `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V6l11-2v12"/><circle cx="6" cy="18" r="3"/><circle cx="17" cy="16" r="3"/></svg>`,
+      link: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1db954" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`,
+      plus: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>`,
+      back: `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>`,
+      chevronDown: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>`,
+      trash: `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/><path d="M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"/></svg>`,
+      download: (size = 19) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11"/><path d="M7.5 11.5L12 16l4.5-4.5"/><path d="M5 19h14"/></svg>`,
+      checkCircle: (size = 19) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="#1db954" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9" fill="rgba(29,185,84,0.16)"/><path d="M8.5 12.2l2.3 2.3 4.7-4.8"/></svg>`,
+      play: (size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor"><path d="M7.5 5.2v13.6c0 .9 1 1.45 1.76.96l10.4-6.8a1.15 1.15 0 0 0 0-1.92l-10.4-6.8c-.76-.5-1.76.06-1.76.96z"/></svg>`,
+      pause: (size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4.4" height="14" rx="2.2"/><rect x="13.6" y="5" width="4.4" height="14" rx="2.2"/></svg>`,
+      spinner: (size = 20) => `<svg class="spin" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M12 3a9 9 0 1 0 9 9"/></svg>`,
+      prev: (size = 22) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="6" width="2" height="12" rx="1" fill="currentColor" stroke="none"/><path d="M18 6.5L10.5 12l7.5 5.5V6.5z" fill="currentColor"/></svg>`,
+      next: (size = 22) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="17" y="6" width="2" height="12" rx="1" fill="currentColor" stroke="none"/><path d="M6 6.5L13.5 12 6 17.5V6.5z" fill="currentColor"/></svg>`,
+      shuffle: (size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>`,
+      repeat: (size = 20) => `<svg width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 2l4 4-4 4"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><path d="M7 22l-4-4 4-4"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`,
+      volHigh: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5.5L6.8 9H4a1.5 1.5 0 0 0-1.5 1.5v3A1.5 1.5 0 0 0 4 15h2.8l4.2 3.5a.8.8 0 0 0 1.3-.62V6.12a.8.8 0 0 0-1.3-.62z" fill="currentColor" fill-opacity="0.18"/><path d="M15.8 8.8a4.8 4.8 0 0 1 0 6.4"/><path d="M18.6 6a8.6 8.6 0 0 1 0 12"/></svg>`,
+      volLow: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5.5L6.8 9H4a1.5 1.5 0 0 0-1.5 1.5v3A1.5 1.5 0 0 0 4 15h2.8l4.2 3.5a.8.8 0 0 0 1.3-.62V6.12a.8.8 0 0 0-1.3-.62z" fill="currentColor" fill-opacity="0.18"/><path d="M15.8 8.8a4.8 4.8 0 0 1 0 6.4"/></svg>`,
+      volMute: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5.5L6.8 9H4a1.5 1.5 0 0 0-1.5 1.5v3A1.5 1.5 0 0 0 4 15h2.8l4.2 3.5a.8.8 0 0 0 1.3-.62V6.12a.8.8 0 0 0-1.3-.62z" fill="currentColor" fill-opacity="0.18"/><path d="M21 9.5l-5 5M16 9.5l5 5"/></svg>`,
+    };
+
+    const STORAGE_KEY = "streamify_audio_v4";
+    const FAVORITES_ID = "default-1";
+    const ALL_TRACKS_ID = "__all__";
+    const OFFLINE_MODE_KEY = "streamify_offline_mode_v1";
+    const OFFLINE_IDS_BACKUP_KEY = "streamify_offline_ids_v1";
+    const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23181818'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='%231db954' font-size='64'%3E%E2%99%AA%3C/text%3E%3C/svg%3E";
+
+    const audio = document.getElementById("audioPlayer");
+    const preloadAudio = document.getElementById("preloadPlayer");
+    audio.volume = 0.85;
+    preloadAudio.volume = 0;
+
+    let playlists = JSON.parse(localStorage.getItem(STORAGE_KEY)) || [
+      { id: FAVORITES_ID, name: "Favorilerim", tracks: [] }
+    ];
+
+    function ensureFavoritesPlaylist() {
+      let favIdx = playlists.findIndex(p => p.id === FAVORITES_ID);
+      if (favIdx === -1) {
+        playlists.unshift({ id: FAVORITES_ID, name: "Favorilerim", tracks: [] });
+        saveState();
+      } else if (favIdx > 0) {
+        const [fav] = playlists.splice(favIdx, 1);
+        playlists.unshift(fav);
+        saveState();
+      }
+      return playlists[0];
+    }
+
+    ensureFavoritesPlaylist();
+
+    // İnternet yoksa uygulama doğrudan çevrimdışı modda açılır
+    let isOfflineMode = !navigator.onLine || localStorage.getItem(OFFLINE_MODE_KEY) === "true";
+    if (!navigator.onLine) {
+      localStorage.setItem(OFFLINE_MODE_KEY, "true");
+    }
+
+    let downloadedVideoIds = new Set(JSON.parse(localStorage.getItem(OFFLINE_IDS_BACKUP_KEY) || "[]"));
+    let downloadingTrackKeys = new Set();
+    let isBatchDownloading = false;
+    let activeBlobUrl = null;
+    let deferredInstallPrompt = null;
+    let serverWakeTimer = null;
+
+    let currentDetailPlaylistId = FAVORITES_ID;
+    let playingPlaylistId = null;
+    let currentTrackIndex = -1;
+    let standalonePlayingTrack = null;
+    let globalShuffleTracks = [];
+    let pendingTrackForPicker = null;
+    let isShuffle = false;
+    let isRepeat = false;
+    let shuffleQueue = [];
+    let isBuffering = false;
+    let lastVolume = 0.85;
+    let retryCount = 0;
+
+    let liveSearchResults = [];
+    let searchDebounceTimer = null;
+    let searchAbortController = null;
+
+    /* ---------------- BULUT SUNUCU (RENDER) BAĞLANTI & UYANDIRMA KONTROLÜ ---------------- */
+    async function checkOnlineAndServerStatus(manualNotify = false) {
+      const wakeBanner = document.getElementById("serverWakeBanner");
+      if (!wakeBanner) return;
+
+      if (isOfflineMode || !navigator.onLine) {
+        wakeBanner.classList.remove("visible");
+        clearTimeout(serverWakeTimer);
+        if (manualNotify && !navigator.onLine) showToast("İnternet bağlantısı yok.");
+        return;
+      }
+
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 4500);
+      try {
+        const res = await fetch("/api/offline/list", { signal: controller.signal });
+        clearTimeout(timer);
+        if (res.ok) {
+          wakeBanner.classList.remove("visible");
+          clearTimeout(serverWakeTimer);
+          if (manualNotify) showToast("Sunucu hazır!");
+          return;
+        }
+      } catch (e) {
+        clearTimeout(timer);
+      }
+
+      if (!isOfflineMode && navigator.onLine) {
+        wakeBanner.classList.add("visible");
+        clearTimeout(serverWakeTimer);
+        serverWakeTimer = setTimeout(() => checkOnlineAndServerStatus(false), 4000);
+      }
+      if (manualNotify) {
+        showToast("Render sunucusu uyandırılıyor, birazdan hazır olacak...");
+      }
+    }
+
+    window.addEventListener("online", () => {
+      checkOnlineAndServerStatus(false);
+    });
+
+    window.addEventListener("offline", () => {
+      document.getElementById("serverWakeBanner").classList.remove("visible");
+      clearTimeout(serverWakeTimer);
+      if (!isOfflineMode) {
+        isOfflineMode = true;
+        localStorage.setItem(OFFLINE_MODE_KEY, "true");
+        syncOfflineUI();
+        refreshActiveView();
+        showToast("İnternet yok — Çevrimdışı moda geçildi");
+      }
+    });
+
+    document.addEventListener("visibilitychange", () => {
+      if (document.visibilityState === "visible") {
+        if (!navigator.onLine && !isOfflineMode) {
+          isOfflineMode = true;
+          localStorage.setItem(OFFLINE_MODE_KEY, "true");
+          syncOfflineUI();
+          refreshActiveView();
+        }
+        checkOnlineAndServerStatus(false);
+        syncOfflineStorage();
+      }
+    });
+
+    /* ---------------- PWA & SERVICE WORKER ---------------- */
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("/sw.js").catch(() => {});
+      });
+    }
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredInstallPrompt = e;
+      const installBtn = document.getElementById("pwaInstallBtn");
+      if (installBtn) installBtn.style.display = "inline-block";
+      document.getElementById("offlineBanner").classList.add("visible");
+    });
+
+    async function triggerPwaInstall() {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      const { outcome } = await deferredInstallPrompt.userChoice;
+      if (outcome === "accepted") {
+        document.getElementById("pwaInstallBtn").style.display = "none";
+        showToast("Uygulama ana ekrana eklendi");
+      }
+      deferredInstallPrompt = null;
+    }
+
+    /* ---------------- INDEXEDDB ---------------- */
+    function openOfflineDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open("StreamifyOfflineDB", 1);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains("tracks")) {
+            db.createObjectStore("tracks", { keyPath: "videoId" });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function saveBlobToIDB(videoId, blob) {
+      const db = await openOfflineDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction("tracks", "readwrite");
+        tx.objectStore("tracks").put({ videoId, blob, savedAt: Date.now() });
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+      });
+    }
+
+    async function getBlobFromIDB(videoId) {
+      if (!videoId) return null;
+      try {
+        const db = await openOfflineDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction("tracks", "readonly");
+          const req = tx.objectStore("tracks").get(videoId);
+          req.onsuccess = () => resolve(req.result ? req.result.blob : null);
+          req.onerror = () => resolve(null);
+        });
+      } catch (e) {
+        return null;
+      }
+    }
+
+    async function deleteBlobFromIDB(videoId) {
+      if (!videoId) return;
+      try {
+        const db = await openOfflineDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction("tracks", "readwrite");
+          tx.objectStore("tracks").delete(videoId);
+          tx.oncomplete = () => resolve();
+          tx.onerror = () => resolve();
+        });
+      } catch (e) {}
+    }
+
+    async function getAllIDBVideoIds() {
+      try {
+        const db = await openOfflineDB();
+        return new Promise((resolve) => {
+          const tx = db.transaction("tracks", "readonly");
+          const req = tx.objectStore("tracks").getAllKeys();
+          req.onsuccess = () => resolve(req.result || []);
+          req.onerror = () => resolve([]);
+        });
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function persistOfflineIds() {
+      localStorage.setItem(OFFLINE_IDS_BACKUP_KEY, JSON.stringify([...downloadedVideoIds]));
+    }
+
+    /* ---------------- ŞARKI EŞLEŞTİRME & + BUTONU ---------------- */
+    function isSameTrack(a, b) {
+      if (!a || !b) return false;
+      if (a.videoId && b.videoId) return a.videoId === b.videoId;
+      return (
+        (a.title || "").trim().toLowerCase() === (b.title || "").trim().toLowerCase() &&
+        (a.artist || "").trim().toLowerCase() === (b.artist || "").trim().toLowerCase()
+      );
+    }
+
+    function isTrackInPlaylist(pl, track) {
+      if (!pl || !track) return false;
+      return pl.tracks.some(t => isSameTrack(t, track));
+    }
+
+    function getPlaylistsContainingTrack(track) {
+      if (!track) return [];
+      return playlists.filter(pl => isTrackInPlaylist(pl, track));
+    }
+
+    function removeTrackObjFromPlaylist(pl, track) {
+      if (!pl || !track) return false;
+      const idx = pl.tracks.findIndex(t => isSameTrack(t, track));
+      if (idx === -1) return false;
+      pl.tracks.splice(idx, 1);
+
+      if (playingPlaylistId === pl.id) {
+        if (currentTrackIndex === idx) {
+          currentTrackIndex = -1;
+        } else if (currentTrackIndex > idx) {
+          currentTrackIndex--;
+        }
+      }
+      return true;
+    }
+
+    function syncAllPlusButtonsUI() {
+      updateFullPlayerPlusBtn();
+      updateFullPlayerFavoriteBtn();
+      refreshActiveView();
+      if (document.getElementById("topSearchDrawer").classList.contains("open")) {
+        renderSearchResults();
+      }
+    }
+
+    function openPlaylistPicker(trackObj) {
+      if (!trackObj) return;
+      pendingTrackForPicker = {
+        videoId: trackObj.videoId || null,
+        searchQuery: trackObj.searchQuery || null,
+        title: trackObj.title,
+        artist: trackObj.artist,
+        thumb: trackObj.thumb || FALLBACK_IMG
+      };
+
+      const preview = document.getElementById("pickerTrackPreview");
+      preview.innerHTML = `
+        <img src="${pendingTrackForPicker.thumb}" onerror="this.src='${FALLBACK_IMG}'" alt="" />
+        <div class="picker-track-preview-meta">
+          <div class="picker-track-preview-title">${pendingTrackForPicker.title}</div>
+          <div class="picker-track-preview-artist">${pendingTrackForPicker.artist}</div>
+        </div>
+      `;
+
+      renderPickerPlaylists();
+      document.getElementById("playlistPickerModal").classList.add("open");
+    }
+
+    function closePlaylistPicker(e) {
+      if (e && e.target !== document.getElementById("playlistPickerModal")) return;
+      document.getElementById("playlistPickerModal").classList.remove("open");
+      pendingTrackForPicker = null;
+    }
+
+    function renderPickerPlaylists() {
+      const container = document.getElementById("pickerPlaylistItems");
+      container.innerHTML = "";
+      ensureFavoritesPlaylist();
+
+      playlists.forEach(pl => {
+        const isFav = pl.id === FAVORITES_ID;
+        const alreadyAdded = isTrackInPlaylist(pl, pendingTrackForPicker);
+        const firstThumb = pl.tracks.map(t => t.thumb).find(t => t && !t.startsWith("data:"));
+
+        const btn = document.createElement("button");
+        btn.className = "picker-item" + (alreadyAdded ? " selected" : "");
+        btn.onclick = () => toggleTrackInPlaylistFromPicker(pl.id);
+        btn.innerHTML = `
+          <div class="picker-item-left">
+            <div class="picker-item-thumb">
+              ${firstThumb
+                ? `<img src="${firstThumb}" onerror="this.src='${FALLBACK_IMG}'" alt="" />`
+                : (isFav ? ICONS.heart(true, 18) : ICONS.music)}
+            </div>
+            <div style="min-width:0;flex:1">
+              <div class="picker-item-name">${pl.name}</div>
+              <div class="picker-item-count">${pl.tracks.length} şarkı</div>
+            </div>
+          </div>
+          ${alreadyAdded
+            ? `<span class="picker-item-badge">✓ Listede</span>`
+            : `<span style="color:var(--text-secondary)">${ICONS.plus}</span>`}
+        `;
+        container.appendChild(btn);
+      });
+    }
+
+    function toggleTrackInPlaylistFromPicker(playlistId) {
+      if (!pendingTrackForPicker) return;
+      const targetPl = playlists.find(p => p.id === playlistId);
+      if (!targetPl) return;
+
+      if (isTrackInPlaylist(targetPl, pendingTrackForPicker)) {
+        removeTrackObjFromPlaylist(targetPl, pendingTrackForPicker);
+        saveState();
+        renderPickerPlaylists();
+        syncAllPlusButtonsUI();
+        showToast(`"${targetPl.name}" listesinden kaldırıldı`);
+        return;
+      }
+
+      targetPl.tracks.push({
+        id: "tr-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+        videoId: pendingTrackForPicker.videoId,
+        searchQuery: pendingTrackForPicker.searchQuery,
+        title: pendingTrackForPicker.title,
+        artist: pendingTrackForPicker.artist,
+        thumb: pendingTrackForPicker.thumb || FALLBACK_IMG
+      });
+
+      saveState();
+      closePlaylistPicker();
+      syncAllPlusButtonsUI();
+      showToast(`"${targetPl.name}" listesine eklendi`);
+    }
+
+    function createPlaylistAndAddTrack() {
+      const input = document.getElementById("pickerNewPlaylistInput");
+      const name = input.value.trim();
+      if (!name) return;
+
+      const newPl = { id: "pl-" + Date.now(), name, tracks: [] };
+      playlists.push(newPl);
+      input.value = "";
+      saveState();
+      toggleTrackInPlaylistFromPicker(newPl.id);
+    }
+
+    function handlePlusButtonFromSearch(idx, e) {
+      if (e) e.stopPropagation();
+      const item = liveSearchResults[idx];
+      if (!item) return;
+
+      const containing = getPlaylistsContainingTrack(item);
+      if (containing.length === 1) {
+        const targetPl = containing[0];
+        removeTrackObjFromPlaylist(targetPl, item);
+        saveState();
+        syncAllPlusButtonsUI();
+        showToast(`"${targetPl.name}" listesinden kaldırıldı`);
+      } else {
+        openPlaylistPicker(item);
+      }
+    }
+
+    function handlePlusButtonFromPlaylist(playlistId, index, e) {
+      if (e) e.stopPropagation();
+      const pl = playlists.find(p => p.id === playlistId);
+      const track = pl?.tracks[index];
+      if (!track) return;
+
+      const containing = getPlaylistsContainingTrack(track);
+      if (containing.length === 1 && containing[0].id === playlistId) {
+        removeTrackObjFromPlaylist(pl, track);
+        saveState();
+        syncAllPlusButtonsUI();
+        showToast(`"${pl.name}" listesinden kaldırıldı`);
+      } else {
+        openPlaylistPicker(track);
+      }
+    }
+
+    function handlePlusButtonForActiveTrack() {
+      const track = getActivePlayingTrack();
+      if (!track) return;
+
+      const containing = getPlaylistsContainingTrack(track);
+      if (containing.length === 1) {
+        const targetPl = containing[0];
+        removeTrackObjFromPlaylist(targetPl, track);
+        saveState();
+        syncAllPlusButtonsUI();
+        showToast(`"${targetPl.name}" listesinden kaldırıldı`);
+      } else {
+        openPlaylistPicker(track);
+      }
+    }
+
+    function updateFullPlayerPlusBtn() {
+      const btn = document.getElementById("fpAddToListBtn");
+      if (!btn) return;
+      const track = getActivePlayingTrack();
+      const inList = getPlaylistsContainingTrack(track).length > 0;
+      btn.classList.toggle("in-playlist", inList);
+      btn.title = inList ? "Listeden Kaldır / Liste Seç" : "Listeye Ekle";
+    }
+
+    /* ---------------- FAVORİLER YÖNETİMİ ---------------- */
+    function getFavoritesPlaylist() {
+      return ensureFavoritesPlaylist();
+    }
+
+    function findFavoriteIndex(track) {
+      if (!track) return -1;
+      const fav = getFavoritesPlaylist();
+      return fav.tracks.findIndex(t => isSameTrack(t, track));
+    }
+
+    function isTrackFavorited(track) {
+      return findFavoriteIndex(track) !== -1;
+    }
+
+    function toggleFavoriteTrackObj(track) {
+      if (!track) return;
+      const fav = getFavoritesPlaylist();
+      const idx = findFavoriteIndex(track);
+
+      if (idx !== -1) {
+        fav.tracks.splice(idx, 1);
+        saveState();
+        showToast("Favorilerden çıkarıldı");
+      } else {
+        fav.tracks.unshift({
+          id: "fav-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+          videoId: track.videoId || null,
+          searchQuery: track.searchQuery || null,
+          title: track.title,
+          artist: track.artist,
+          thumb: track.thumb || FALLBACK_IMG
+        });
+        saveState();
+        showToast("Favorilerime eklendi ♥");
+      }
+
+      syncAllPlusButtonsUI();
+    }
+
+    function handleTrackFavoriteClick(playlistId, index, e) {
+      if (e) e.stopPropagation();
+      const pl = playlists.find(p => p.id === playlistId);
+      const track = pl?.tracks[index];
+      if (track) toggleFavoriteTrackObj(track);
+    }
+
+    function toggleFavoriteCurrentPlayingTrack() {
+      const track = getActivePlayingTrack();
+      if (track) toggleFavoriteTrackObj(track);
+    }
+
+    function updateFullPlayerFavoriteBtn() {
+      const btn = document.getElementById("fpFavoriteBtn");
+      if (!btn) return;
+      const track = getActivePlayingTrack();
+      const fav = isTrackFavorited(track);
+      btn.innerHTML = ICONS.heart(fav, 22);
+      btn.classList.toggle("favorited", fav);
+    }
+
+    /* ---------------- ÜST BAR CANLI ARAMA ---------------- */
+    function toggleSearchDrawer() {
+      const drawer = document.getElementById("topSearchDrawer");
+      const btn = document.getElementById("searchToggleBtn");
+      const isOpen = drawer.classList.toggle("open");
+      btn.classList.toggle("active", isOpen);
+
+      if (isOpen) {
+        const input = document.getElementById("globalSearchInput");
+        setTimeout(() => input.focus(), 40);
+      }
+    }
+
+    function clearLiveSearch() {
+      const input = document.getElementById("globalSearchInput");
+      input.value = "";
+      document.getElementById("searchClearBtn").style.display = "none";
+      document.getElementById("searchSpinner").style.display = "none";
+      liveSearchResults = [];
+      document.getElementById("searchResultsList").innerHTML = "";
+      input.focus();
+    }
+
+    function handleSearchKeydown(e) {
+      if (e.key === "Escape") {
+        toggleSearchDrawer();
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        performLiveSearch(e.target.value.trim());
+      }
+    }
+
+    function handleLiveSearchInput(val) {
+      const q = val.trim();
+      const clearBtn = document.getElementById("searchClearBtn");
+      clearBtn.style.display = q.length > 0 ? "inline-flex" : "none";
+
+      clearTimeout(searchDebounceTimer);
+      if (q.length < 2) {
+        if (searchAbortController) searchAbortController.abort();
+        document.getElementById("searchSpinner").style.display = "none";
+        liveSearchResults = [];
+        document.getElementById("searchResultsList").innerHTML = "";
+        return;
+      }
+
+      searchDebounceTimer = setTimeout(() => {
+        performLiveSearch(q);
+      }, 340);
+    }
+
+    async function performLiveSearch(query) {
+      if (!query || query.length < 2) return;
+      if (searchAbortController) searchAbortController.abort();
+      searchAbortController = new AbortController();
+
+      const spinner = document.getElementById("searchSpinner");
+      spinner.style.display = "inline-flex";
+
+      try {
+        const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`, {
+          signal: searchAbortController.signal
+        });
+        const data = await res.json();
+        liveSearchResults = data.results || [];
+        renderSearchResults();
+      } catch (err) {
+        if (err.name !== "AbortError") {
+          document.getElementById("searchResultsList").innerHTML =
+            `<p style="color:#a8a8a8;font-size:0.86rem;padding:8px 4px;">Arama yapılamadı, internet bağlantınızı kontrol edin.</p>`;
+        }
+      } finally {
+        spinner.style.display = "none";
+      }
+    }
+
+    function renderSearchResults() {
+      const container = document.getElementById("searchResultsList");
+      if (!liveSearchResults.length) {
+        container.innerHTML = "";
+        return;
+      }
+
+      container.innerHTML = "";
+      liveSearchResults.forEach((item, idx) => {
+        const fav = isTrackFavorited(item);
+        const inList = getPlaylistsContainingTrack(item).length > 0;
+        const row = document.createElement("div");
+        row.className = "search-result-row";
+        row.onclick = () => playSearchResult(idx);
+        row.innerHTML = `
+          <img class="search-result-thumb" src="${item.thumb || FALLBACK_IMG}" onerror="this.src='${FALLBACK_IMG}'" alt="" />
+          <div class="search-result-meta">
+            <div class="search-result-title">${item.title}</div>
+            <div class="search-result-sub">${item.artist}${item.duration ? " • " + item.duration : ""}</div>
+          </div>
+          <div class="track-row-actions">
+            <button class="icon-btn ${fav ? "favorited" : ""}" onclick="toggleFavoriteFromSearch(${idx}, event)" title="${fav ? "Favorilerden çıkar" : "Favorilere ekle"}">
+              ${ICONS.heart(fav, 18)}
+            </button>
+            <button class="icon-btn ${inList ? "in-playlist" : ""}" onclick="handlePlusButtonFromSearch(${idx}, event)" title="${inList ? "Listeden kaldır" : "Listeye ekle"}">
+              ${ICONS.plus}
+            </button>
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    function toggleFavoriteFromSearch(idx, e) {
+      if (e) e.stopPropagation();
+      const item = liveSearchResults[idx];
+      if (item) toggleFavoriteTrackObj(item);
+    }
+
+    function playSearchResult(idx) {
+      const item = liveSearchResults[idx];
+      if (!item) return;
+      const trackObj = {
+        id: "search-" + Date.now(),
+        videoId: item.videoId,
+        searchQuery: null,
+        title: item.title,
+        artist: item.artist,
+        thumb: item.thumb || FALLBACK_IMG
+      };
+      standalonePlayingTrack = trackObj;
+      playingPlaylistId = null;
+      currentTrackIndex = -1;
+      startAudioForTrack(trackObj, "Arama Sonucu");
+    }
+
+    /* ---------------- BAŞLANGIÇ & EŞİTLEME ---------------- */
+    function initIcons() {
+      document.getElementById("searchToggleBtn").innerHTML = ICONS.search(16);
+      document.getElementById("drawerSearchIcon").innerHTML = ICONS.search(17);
+      document.getElementById("searchSpinner").innerHTML = ICONS.spinner(17);
+      document.getElementById("searchClearBtn").innerHTML = ICONS.closeX(16);
+      document.getElementById("pickerCloseBtn").innerHTML = ICONS.closeX(18);
+      document.getElementById("navHomeIcon").innerHTML = ICONS.back;
+      document.getElementById("linkHeaderIcon").innerHTML = ICONS.link;
+      document.getElementById("plusIcon").innerHTML = ICONS.plus;
+      document.getElementById("homeGlobalShuffleIcon").innerHTML = ICONS.shuffle(17);
+      document.getElementById("deletePlaylistBtn").innerHTML = ICONS.trash;
+      document.getElementById("detailPlayIcon").innerHTML = ICONS.play(18);
+      document.getElementById("detailShuffleIcon").innerHTML = ICONS.shuffle(18);
+      document.getElementById("detailDownloadAllIcon").innerHTML = ICONS.download(18);
+      document.getElementById("fpAddToListBtn").innerHTML = ICONS.plus;
+      document.getElementById("fpFavoriteBtn").innerHTML = ICONS.heart(false, 22);
+      document.getElementById("fpDownloadBtn").innerHTML = ICONS.download(22);
+
+      document.getElementById("miniPrevBtn").innerHTML = ICONS.prev(22);
+      document.getElementById("miniNextBtn").innerHTML = ICONS.next(22);
+      document.getElementById("fpCloseBtn").innerHTML = ICONS.chevronDown;
+      document.getElementById("fpShuffleBtn").innerHTML = ICONS.shuffle(22);
+      document.getElementById("fpPrevBtn").innerHTML = ICONS.prev(28);
+      document.getElementById("fpNextBtn").innerHTML = ICONS.next(28);
+      document.getElementById("fpRepeatBtn").innerHTML = ICONS.repeat(22);
+
+      updatePlayButtons(false, false);
+      updateVolumeIcon(0.85);
+      syncOfflineUI();
+    }
+
+    async function syncOfflineStorage() {
+      const idbKeys = await getAllIDBVideoIds();
+      downloadedVideoIds = new Set(idbKeys);
+      persistOfflineIds();
+      syncOfflineUI();
+      refreshActiveView();
+    }
+
+    function toggleOfflineMode() {
+      isOfflineMode = !isOfflineMode;
+      localStorage.setItem(OFFLINE_MODE_KEY, isOfflineMode ? "true" : "false");
+      syncOfflineUI();
+      refreshActiveView();
+
+      if (isOfflineMode) {
+        document.getElementById("serverWakeBanner").classList.remove("visible");
+        clearTimeout(serverWakeTimer);
+        showToast("Çevrimdışı mod açıldı");
+      } else {
+        checkOnlineAndServerStatus(false);
+        showToast("Çevrimdışı mod kapatıldı");
+      }
+    }
+
+    function syncOfflineUI() {
+      const btn = document.getElementById("offlineToggleBtn");
+      const banner = document.getElementById("offlineBanner");
+      const bannerText = document.getElementById("offlineBannerText");
+      const dlAllBtn = document.getElementById("downloadAllBtn");
+      const wakeBanner = document.getElementById("serverWakeBanner");
+
+      if (isOfflineMode || !navigator.onLine) {
+        if (wakeBanner) wakeBanner.classList.remove("visible");
+      }
+
+      btn.classList.toggle("active", isOfflineMode);
+      banner.classList.toggle("visible", isOfflineMode || !!deferredInstallPrompt);
+      bannerText.textContent = `Çevrimdışı Mod • Cihaz hafızasında ${downloadedVideoIds.size} şarkı hazır (internetsiz çalar).`;
+
+      if (dlAllBtn) {
+        dlAllBtn.style.display = isOfflineMode ? "inline-flex" : "none";
+      }
+      updateFullPlayerDownloadBtn();
+    }
+
+    function refreshActiveView() {
+      if (document.getElementById("playlistView").classList.contains("active")) {
+        renderPlaylistDetail();
+      } else {
+        renderHomeGrid();
+      }
+    }
+
+    function isTrackDownloaded(track) {
+      return !!(track && track.videoId && downloadedVideoIds.has(track.videoId));
+    }
+
+    function getVirtualOrRealPlaylist(playlistId) {
+      if (playlistId === ALL_TRACKS_ID) {
+        return { id: ALL_TRACKS_ID, name: "Tüm Listeler (Karışık)", tracks: globalShuffleTracks };
+      }
+      return playlists.find(p => p.id === playlistId) || null;
+    }
+
+    function getActivePlayingTrack() {
+      if (playingPlaylistId && currentTrackIndex >= 0) {
+        const pl = getVirtualOrRealPlaylist(playingPlaylistId);
+        return pl?.tracks[currentTrackIndex] || null;
+      }
+      return standalonePlayingTrack;
+    }
+
+    /* Tek Şarkıyı Telefon Hafızasına (IndexedDB) Kaydetme */
+    async function saveTrackOffline(track, trackKey) {
+      if (!track) return;
+      if (downloadingTrackKeys.has(trackKey)) return;
+
+      if (isTrackDownloaded(track)) {
+        if (confirm(`"${track.title}" cihaz hafızasından silinsin mi?`)) {
+          await deleteBlobFromIDB(track.videoId);
+          downloadedVideoIds.delete(track.videoId);
+          persistOfflineIds();
+          fetch(`/api/offline/delete/${track.videoId}`, { method: "DELETE" }).catch(() => {});
+          syncOfflineUI();
+          refreshActiveView();
+          showToast("Çevrimdışı şarkı silindi");
+        }
+        return;
+      }
+
+      downloadingTrackKeys.add(trackKey);
+      refreshActiveView();
+      updateFullPlayerDownloadBtn();
+
+      try {
+        const res = await fetch("/api/offline/save", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            videoId: track.videoId,
+            searchQuery: track.searchQuery
+          })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          showToast(data.error || "İndirme başarısız.");
+          return;
+        }
+        if (data.videoId) {
+          track.videoId = data.videoId;
+          if (data.thumb && (!track.thumb || track.thumb.startsWith("data:"))) {
+            track.thumb = data.thumb;
+          }
+          const audioResp = await fetch(`/stream/${data.videoId}`);
+          if (!audioResp.ok) throw new Error("Ses verisi okunamadı.");
+          const audioBlob = await audioResp.blob();
+          await saveBlobToIDB(data.videoId, audioBlob);
+
+          downloadedVideoIds.add(data.videoId);
+          persistOfflineIds();
+          saveState();
+          showToast(`"${track.title}" cihaza kaydedildi`);
+        }
+      } catch (err) {
+        showToast("İndirme için internet bağlantısı gerekir.");
+      } finally {
+        downloadingTrackKeys.delete(trackKey);
+        syncOfflineUI();
+        refreshActiveView();
+      }
+    }
+
+    async function handleTrackDownloadClick(playlistId, index, e) {
+      if (e) e.stopPropagation();
+      const pl = playlists.find(p => p.id === playlistId);
+      const track = pl?.tracks[index];
+      if (!track) return;
+      const trackKey = track.id || `${playlistId}-${index}`;
+      await saveTrackOffline(track, trackKey);
+    }
+
+    async function toggleBatchDownload() {
+      if (isBatchDownloading) {
+        isBatchDownloading = false;
+        document.getElementById("downloadAllLabel").textContent = "Tümünü İndir";
+        showToast("Toplu indirme durduruldu");
+        return;
+      }
+
+      const pl = playlists.find(p => p.id === currentDetailPlaylistId);
+      if (!pl || pl.tracks.length === 0) return;
+
+      isBatchDownloading = true;
+      const label = document.getElementById("downloadAllLabel");
+
+      for (let i = 0; i < pl.tracks.length; i++) {
+        if (!isBatchDownloading) break;
+        const track = pl.tracks[i];
+        if (isTrackDownloaded(track)) continue;
+
+        label.textContent = `İndiriliyor (${i + 1}/${pl.tracks.length})...`;
+        await handleTrackDownloadClick(pl.id, i, null);
+      }
+
+      isBatchDownloading = false;
+      label.textContent = "Tümünü İndir";
+      showToast("Liste indirme işlemi tamamlandı");
+    }
+
+    function downloadCurrentPlayingTrack() {
+      const track = getActivePlayingTrack();
+      if (!track) return;
+      const trackKey = track.id || (playingPlaylistId ? `${playingPlaylistId}-${currentTrackIndex}` : "standalone");
+      saveTrackOffline(track, trackKey);
+    }
+
+    function updateFullPlayerDownloadBtn() {
+      const btn = document.getElementById("fpDownloadBtn");
+      if (!btn) return;
+      const track = getActivePlayingTrack();
+      if (!track) {
+        btn.innerHTML = ICONS.download(22);
+        return;
+      }
+      const trackKey = track.id || (playingPlaylistId ? `${playingPlaylistId}-${currentTrackIndex}` : "standalone");
+      if (downloadingTrackKeys.has(trackKey)) {
+        btn.innerHTML = ICONS.spinner(22);
+      } else if (isTrackDownloaded(track)) {
+        btn.innerHTML = ICONS.checkCircle(22);
+      } else {
+        btn.innerHTML = ICONS.download(22);
+      }
+    }
+
+    function updatePlayButtons(playing, loading) {
+      document.getElementById("playPauseBtn").innerHTML = loading
+        ? ICONS.spinner(20)
+        : playing ? ICONS.pause(20) : ICONS.play(20);
+      document.getElementById("fpPlayPauseBtn").innerHTML = loading
+        ? ICONS.spinner(26)
+        : playing ? ICONS.pause(26) : ICONS.play(26);
+    }
+
+    function updateVolumeIcon(vol) {
+      const btn = document.getElementById("volumeIconBtn");
+      if (vol === 0) btn.innerHTML = ICONS.volMute;
+      else if (vol < 0.5) btn.innerHTML = ICONS.volLow;
+      else btn.innerHTML = ICONS.volHigh;
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(playlists));
+    }
+
+    function showToast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg;
+      t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2700);
+    }
+
+    /* Sayfa Geçişleri */
+    function goHome() {
+      isBatchDownloading = false;
+      document.getElementById("playlistView").classList.remove("active");
+      document.getElementById("homeView").classList.add("active");
+      document.getElementById("homeNavBtn").style.display = "none";
+      renderHomeGrid();
+    }
+
+    function openPlaylistDetail(playlistId) {
+      currentDetailPlaylistId = playlistId;
+      document.getElementById("homeView").classList.remove("active");
+      document.getElementById("playlistView").classList.add("active");
+      document.getElementById("homeNavBtn").style.display = "inline-flex";
+      renderPlaylistDetail();
+    }
+
+    function openFullPlayer() {
+      document.getElementById("fullPlayerOverlay").classList.add("open");
+      updateFullPlayerPlusBtn();
+      updateFullPlayerFavoriteBtn();
+      updateFullPlayerDownloadBtn();
+    }
+
+    function closeFullPlayer() {
+      document.getElementById("fullPlayerOverlay").classList.remove("open");
+    }
+
+    /* Kapak Kolajı Üretici */
+    function buildCoverHTML(tracks, isFavorites = false) {
+      const validThumbs = tracks.map(t => t.thumb).filter(t => t && !t.startsWith("data:"));
+      if (validThumbs.length >= 4) {
+        return `
+          <div class="pl-cover-collage">
+            <img src="${validThumbs[0]}" onerror="this.src='${FALLBACK_IMG}'" alt="" />
+            <img src="${validThumbs[1]}" onerror="this.src='${FALLBACK_IMG}'" alt="" />
+            <img src="${validThumbs[2]}" onerror="this.src='${FALLBACK_IMG}'" alt="" />
+            <img src="${validThumbs[3]}" onerror="this.src='${FALLBACK_IMG}'" alt="" />
+          </div>
+        `;
+      } else if (validThumbs.length > 0) {
+        return `<img class="pl-cover-single" src="${validThumbs[0]}" onerror="this.src='${FALLBACK_IMG}'" alt="" />`;
+      }
+      return `<div class="pl-cover-empty">${isFavorites ? ICONS.heart(true, 40) : ICONS.music}</div>`;
+    }
+
+    /* Ses Olayları */
+    audio.addEventListener("waiting", () => {
+      isBuffering = true;
+      updatePlayButtons(false, true);
+    });
+
+    audio.addEventListener("playing", () => {
+      isBuffering = false;
+      retryCount = 0;
+      updatePlayButtons(true, false);
+    });
+
+    audio.addEventListener("pause", () => {
+      if (!isBuffering) updatePlayButtons(false, false);
+    });
+
+    audio.addEventListener("timeupdate", () => {
+      if (audio.duration) {
+        const currStr = formatTime(audio.currentTime);
+        const durStr = formatTime(audio.duration);
+        const pct = (audio.currentTime / audio.duration) * 100;
+
+        document.getElementById("currentTime").textContent = currStr;
+        document.getElementById("durationTime").textContent = durStr;
+        document.getElementById("seekBar").value = pct;
+
+        document.getElementById("fpCurrentTime").textContent = currStr;
+        document.getElementById("fpDurationTime").textContent = durStr;
+        document.getElementById("fpSeekBar").value = pct;
+      }
+    });
+
+    audio.addEventListener("ended", () => {
+      if (isRepeat) {
+        audio.currentTime = 0;
+        audio.play();
+      } else {
+        playNext();
+      }
+    });
+
+    audio.addEventListener("error", () => {
+      const track = getActivePlayingTrack();
+      if (!activeBlobUrl && track && track.videoId && retryCount < 1) {
+        retryCount++;
+        audio.src = `/stream/${track.videoId}?refresh=1`;
+        audio.play().catch(() => {});
+        return;
+      }
+      retryCount = 0;
+      isBuffering = false;
+      updatePlayButtons(false, false);
+      showToast("Bu parça çalınamadı (çevrimdışı indirilmemiş veya bağlantı yok).");
+    });
+
+    /* Playlist Oluşturma & Silme */
+    function createPlaylist() {
+      const input = document.getElementById("newPlaylistInput");
+      const name = input.value.trim();
+      if (!name) return;
+
+      const newPl = { id: "pl-" + Date.now(), name, tracks: [] };
+      playlists.push(newPl);
+      input.value = "";
+      saveState();
+      renderHomeGrid();
+      showToast(`"${name}" oluşturuldu`);
+    }
+
+    function deleteCurrentPlaylist() {
+      if (currentDetailPlaylistId === FAVORITES_ID) {
+        showToast("Favorilerim listesi silinemez.");
+        return;
+      }
+      playlists = playlists.filter(p => p.id !== currentDetailPlaylistId);
+      ensureFavoritesPlaylist();
+      saveState();
+      showToast("Çalma listesi silindi");
+      goHome();
+    }
+
+    /* YouTube / Spotify Link Aktarma */
+    async function handleImportUrl(e, targetPlaylistId) {
+      e.preventDefault();
+      const input = targetPlaylistId
+        ? document.getElementById("detailUrlInput")
+        : document.getElementById("homeUrlInput");
+      const btn = targetPlaylistId
+        ? document.getElementById("detailImportBtn")
+        : document.getElementById("homeImportBtn");
+
+      const url = input.value.trim();
+      const origText = btn.textContent;
+      btn.disabled = true;
+      btn.textContent = "Yükleniyor...";
+
+      try {
+        const res = await fetch("/api/import", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, importAsPlaylist: true })
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          showToast(data.error || "Bağlantı işlenemedi.");
+          return;
+        }
+
+        if (data.type === "playlist") {
+          const formattedTracks = data.tracks.map((t, i) => ({
+            id: `tr-${Date.now()}-${i}`,
+            videoId: t.videoId || null,
+            searchQuery: t.searchQuery || null,
+            title: t.title,
+            artist: t.artist,
+            thumb: t.thumb || FALLBACK_IMG
+          }));
+
+          if (targetPlaylistId) {
+            const targetPl = playlists.find(p => p.id === targetPlaylistId);
+            if (targetPl) {
+              targetPl.tracks.push(...formattedTracks);
+              saveState();
+              renderPlaylistDetail();
+              showToast(`${formattedTracks.length} şarkı listeye eklendi`);
+            }
+          } else {
+            const newPl = {
+              id: "pl-" + Date.now(),
+              name: data.playlistName,
+              tracks: formattedTracks
+            };
+            playlists.push(newPl);
+            saveState();
+            renderHomeGrid();
+            showToast(`"${data.playlistName}" (${formattedTracks.length} şarkı) eklendi`);
+          }
+        } else if (data.track) {
+          const destId = targetPlaylistId || FAVORITES_ID;
+          const destPl = playlists.find(p => p.id === destId) || getFavoritesPlaylist();
+          destPl.tracks.push({
+            id: "tr-" + Date.now(),
+            videoId: data.track.videoId,
+            searchQuery: null,
+            title: data.track.title,
+            artist: data.track.artist,
+            thumb: data.track.thumb || FALLBACK_IMG
+          });
+          saveState();
+          if (targetPlaylistId) renderPlaylistDetail();
+          else renderHomeGrid();
+          showToast(`"${destPl.name}" listesine eklendi`);
+        }
+        input.value = "";
+      } catch (err) {
+        showToast("Bağlantı eklemek için internet gereklidir.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = origText;
+      }
+    }
+
+    function removeTrack(index, e) {
+      e.stopPropagation();
+      const pl = playlists.find(p => p.id === currentDetailPlaylistId);
+      if (!pl) return;
+      pl.tracks.splice(index, 1);
+      saveState();
+      syncAllPlusButtonsUI();
+    }
+
+    /* Ana Sayfa Tüm Favori ve Playlistlerden Karışık Çal */
+    function buildAllTracksPool() {
+      const unique = [];
+      playlists.forEach(pl => {
+        (pl.tracks || []).forEach(t => {
+          if (!unique.some(u => isSameTrack(u, t))) {
+            unique.push({ ...t, _sourcePlaylistName: pl.name });
+          }
+        });
+      });
+      if (!navigator.onLine) {
+        const offlineOnly = unique.filter(t => isTrackDownloaded(t));
+        if (offlineOnly.length > 0) return offlineOnly;
+      }
+      return unique;
+    }
+
+    function playGlobalShuffle() {
+      const pool = buildAllTracksPool();
+      if (pool.length === 0) {
+        showToast("Favorilerde veya listelerde henüz şarkı yok.");
+        return;
+      }
+      globalShuffleTracks = pool;
+      isShuffle = true;
+      document.getElementById("fpShuffleBtn").classList.add("active");
+
+      const activeTrack = getActivePlayingTrack();
+      let startIdx = Math.floor(Math.random() * globalShuffleTracks.length);
+      if (activeTrack && globalShuffleTracks.length > 1 && isSameTrack(globalShuffleTracks[startIdx], activeTrack)) {
+        startIdx = (startIdx + 1) % globalShuffleTracks.length;
+      }
+
+      rebuildShuffleQueue(globalShuffleTracks.length, startIdx);
+      showToast(`Karışık çalınıyor (${globalShuffleTracks.length} şarkı)`);
+      playTrack(ALL_TRACKS_ID, startIdx);
+    }
+
+    /* Karışık Çalma Kuyruğu */
+    function rebuildShuffleQueue(length, startIdx = -1) {
+      const indices = Array.from({ length }, (_, i) => i).filter(i => i !== startIdx);
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+      if (startIdx >= 0) indices.unshift(startIdx);
+      shuffleQueue = indices;
+    }
+
+    function getNextTrackIndex(pl) {
+      if (!pl || pl.tracks.length === 0) return -1;
+      if (!isShuffle) {
+        return (currentTrackIndex + 1) % pl.tracks.length;
+      }
+      if (shuffleQueue.length !== pl.tracks.length) {
+        rebuildShuffleQueue(pl.tracks.length, currentTrackIndex);
+      }
+      const pos = shuffleQueue.indexOf(currentTrackIndex);
+      if (pos === -1 || pos + 1 >= shuffleQueue.length) {
+        rebuildShuffleQueue(pl.tracks.length);
+        return shuffleQueue[0];
+      }
+      return shuffleQueue[pos + 1];
+    }
+
+    async function prepareAndPreloadNext(pl) {
+      const nextIdx = getNextTrackIndex(pl);
+      if (nextIdx < 0 || nextIdx === currentTrackIndex) return;
+      const nextTrack = pl.tracks[nextIdx];
+      if (!nextTrack) return;
+
+      if (nextTrack.videoId && downloadedVideoIds.has(nextTrack.videoId)) return;
+
+      try {
+        const res = await fetch("/api/prepare", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            videoId: nextTrack.videoId,
+            searchQuery: nextTrack.searchQuery
+          })
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.videoId) {
+          nextTrack.videoId = data.videoId;
+          if (data.thumb && (!nextTrack.thumb || nextTrack.thumb.startsWith("data:"))) {
+            nextTrack.thumb = data.thumb;
+          }
+          saveState();
+          const targetSrc = `/stream/${nextTrack.videoId}`;
+          if (!preloadAudio.src.endsWith(targetSrc)) {
+            preloadAudio.src = targetSrc;
+            preloadAudio.load();
+          }
+        }
+      } catch (e) {}
+    }
+
+    function playPlaylistNormal(playlistId = currentDetailPlaylistId) {
+      const pl = playlists.find(p => p.id === playlistId);
+      if (!pl || pl.tracks.length === 0) {
+        showToast("Bu listede henüz şarkı yok.");
+        return;
+      }
+      isShuffle = false;
+      document.getElementById("fpShuffleBtn").classList.remove("active");
+      playTrack(pl.id, 0);
+    }
+
+    function playPlaylistShuffled(playlistId = currentDetailPlaylistId) {
+      const pl = playlists.find(p => p.id === playlistId);
+      if (!pl || pl.tracks.length === 0) {
+        showToast("Bu listede henüz şarkı yok.");
+        return;
+      }
+      isShuffle = true;
+      document.getElementById("fpShuffleBtn").classList.add("active");
+      rebuildShuffleQueue(pl.tracks.length);
+      showToast("Karışık çalma başlatıldı");
+      playTrack(pl.id, shuffleQueue[0]);
+    }
+
+    async function playTrack(playlistId, index) {
+      const pl = getVirtualOrRealPlaylist(playlistId);
+      if (!pl || !pl.tracks[index]) return;
+
+      standalonePlayingTrack = null;
+      playingPlaylistId = playlistId;
+      currentTrackIndex = index;
+      retryCount = 0;
+      const track = pl.tracks[index];
+      const sourceLabel = track._sourcePlaylistName || pl.name;
+
+      if (document.getElementById("playlistView").classList.contains("active")) {
+        renderPlaylistDetail();
+      }
+
+      await startAudioForTrack(track, sourceLabel, pl);
+    }
+
+    async function startAudioForTrack(track, sourceLabel, parentPlaylist = null) {
+      updatePlayerUI(track, sourceLabel);
+      updateFullPlayerPlusBtn();
+      updateFullPlayerFavoriteBtn();
+      updateFullPlayerDownloadBtn();
+
+      isBuffering = true;
+      updatePlayButtons(false, true);
+
+      if (activeBlobUrl) {
+        URL.revokeObjectURL(activeBlobUrl);
+        activeBlobUrl = null;
+      }
+
+      if (track.videoId) {
+        const offlineBlob = await getBlobFromIDB(track.videoId);
+        if (offlineBlob) {
+          activeBlobUrl = URL.createObjectURL(offlineBlob);
+          audio.src = activeBlobUrl;
+          audio.play().catch(() => {
+            isBuffering = false;
+            updatePlayButtons(false, false);
+          });
+          setupMediaSession(track);
+          return;
+        }
+      }
+
+      if (!track.videoId) {
+        try {
+          const res = await fetch("/api/prepare", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ searchQuery: track.searchQuery })
+          });
+          if (!res.ok) throw new Error();
+          const data = await res.json();
+          track.videoId = data.videoId;
+          if (data.thumb && (!track.thumb || track.thumb.startsWith("data:"))) {
+            track.thumb = data.thumb;
+          }
+          saveState();
+          updatePlayerUI(track, sourceLabel);
+        } catch (e) {
+          isBuffering = false;
+          updatePlayButtons(false, false);
+          showToast("Çevrimdışı indirilmemiş şarkı için internet gereklidir.");
+          return;
+        }
+      }
+
+      audio.src = `/stream/${track.videoId}`;
+      audio.play().catch(() => {
+        isBuffering = false;
+        updatePlayButtons(false, false);
+      });
+
+      setupMediaSession(track);
+      if (parentPlaylist) {
+        setTimeout(() => prepareAndPreloadNext(parentPlaylist), 1000);
+      }
+    }
+
+    function setupMediaSession(track) {
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: track.title,
+          artist: track.artist,
+          artwork: [{ src: track.thumb || "/icon-512.png", sizes: "512x512", type: "image/png" }]
+        });
+        navigator.mediaSession.setActionHandler("previoustrack", playPrev);
+        navigator.mediaSession.setActionHandler("nexttrack", playNext);
+      }
+    }
+
+    function updatePlayerUI(track, playlistName) {
+      const thumb = track.thumb || FALLBACK_IMG;
+      const npImg = document.getElementById("npThumb");
+      const fpImg = document.getElementById("fpThumb");
+
+      npImg.onerror = () => { npImg.src = FALLBACK_IMG; };
+      fpImg.onerror = () => { fpImg.src = FALLBACK_IMG; };
+
+      document.getElementById("npTitle").textContent = track.title;
+      document.getElementById("npArtist").textContent = track.artist;
+      npImg.src = thumb;
+
+      document.getElementById("fpPlaylistName").textContent = playlistName;
+      document.getElementById("fpTitle").textContent = track.title;
+      document.getElementById("fpArtist").textContent = track.artist;
+      fpImg.src = thumb;
+    }
+
+    function togglePlay() {
+      if (currentTrackIndex === -1 && !standalonePlayingTrack) {
+        playGlobalShuffle();
+        return;
+      }
+      if (audio.paused) audio.play();
+      else audio.pause();
+    }
+
+    function playNext() {
+      const pl = getVirtualOrRealPlaylist(playingPlaylistId || currentDetailPlaylistId);
+      if (!pl || pl.tracks.length === 0) return;
+      const nextIndex = getNextTrackIndex(pl);
+      playTrack(pl.id, nextIndex);
+    }
+
+    function playPrev() {
+      const pl = getVirtualOrRealPlaylist(playingPlaylistId || currentDetailPlaylistId);
+      if (!pl || pl.tracks.length === 0) return;
+      if (audio.currentTime > 4) {
+        audio.currentTime = 0;
+        return;
+      }
+      const prevIndex = (currentTrackIndex - 1 + pl.tracks.length) % pl.tracks.length;
+      playTrack(pl.id, prevIndex);
+    }
+
+    function toggleShuffle() {
+      isShuffle = !isShuffle;
+      document.getElementById("fpShuffleBtn").classList.toggle("active", isShuffle);
+      const pl = getVirtualOrRealPlaylist(playingPlaylistId || currentDetailPlaylistId);
+      if (isShuffle && pl) {
+        rebuildShuffleQueue(pl.tracks.length, currentTrackIndex);
+        prepareAndPreloadNext(pl);
+      }
+      showToast(isShuffle ? "Karışık çalma açık" : "Karışık çalma kapalı");
+    }
+
+    function toggleRepeat() {
+      isRepeat = !isRepeat;
+      document.getElementById("fpRepeatBtn").classList.toggle("active", isRepeat);
+      showToast(isRepeat ? "Tekrarlama açık" : "Tekrarlama kapalı");
+    }
+
+    function seekTrack(percent) {
+      if (audio.duration) {
+        audio.currentTime = (percent / 100) * audio.duration;
+      }
+    }
+
+    function setVolume(val) {
+      const v = val / 100;
+      audio.volume = v;
+      if (v > 0) lastVolume = v;
+      updateVolumeIcon(v);
+    }
+
+    function toggleMute() {
+      const slider = document.getElementById("volumeSlider");
+      if (audio.volume > 0) {
+        lastVolume = audio.volume;
+        audio.volume = 0;
+        slider.value = 0;
+        updateVolumeIcon(0);
+      } else {
+        const restore = lastVolume || 0.85;
+        audio.volume = restore;
+        slider.value = Math.round(restore * 100);
+        updateVolumeIcon(restore);
+      }
+    }
+
+    function formatTime(sec) {
+      if (!sec || isNaN(sec)) return "0:00";
+      const m = Math.floor(sec / 60);
+      const s = Math.floor(sec % 60);
+      return `${m}:${s < 10 ? "0" : ""}${s}`;
+    }
+
+    /* Ana Sayfa Eşit Boyutlu Playlist Kartları */
+    function renderHomeGrid() {
+      ensureFavoritesPlaylist();
+      const grid = document.getElementById("playlistGrid");
+      grid.innerHTML = "";
+
+      playlists.forEach(pl => {
+        const isFavPl = pl.id === FAVORITES_ID;
+        const offlineCount = pl.tracks.filter(t => isTrackDownloaded(t)).length;
+        const subText = offlineCount > 0
+          ? `${pl.tracks.length} şarkı • ${offlineCount} çevrimdışı`
+          : `${pl.tracks.length} şarkı`;
+
+        const card = document.createElement("div");
+        card.className = "pl-card" + (isFavPl ? " favorites-card" : "");
+        card.onclick = () => openPlaylistDetail(pl.id);
+        card.innerHTML = `
+          <div class="pl-cover-box">
+            ${buildCoverHTML(pl.tracks, isFavPl)}
+            <button class="card-quick-play" onclick="event.stopPropagation(); playPlaylistNormal('${pl.id}')" title="Oynat">
+              ${ICONS.play(17)}
+            </button>
+          </div>
+          <div class="pl-card-footer">
+            <div class="pl-card-title">
+              ${isFavPl ? ICONS.heart(true, 14) : ""}
+              <span style="overflow:hidden;text-overflow:ellipsis">${pl.name}</span>
+            </div>
+            <div class="pl-card-sub">${subText}</div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    /* Playlist Detay Sayfası */
+    function renderPlaylistDetail() {
+      const pl = playlists.find(p => p.id === currentDetailPlaylistId);
+      if (!pl) {
+        goHome();
+        return;
+      }
+
+      const isFavPl = pl.id === FAVORITES_ID;
+      const offlineCount = pl.tracks.filter(t => isTrackDownloaded(t)).length;
+
+      document.getElementById("deletePlaylistBtn").style.display = isFavPl ? "none" : "inline-flex";
+      document.getElementById("detailBadgeText").textContent = isFavPl ? "Beğenilen Şarkılar" : "Çalma Listesi";
+      document.getElementById("detailCoverBox").innerHTML = buildCoverHTML(pl.tracks, isFavPl);
+      document.getElementById("detailTitle").textContent = pl.name;
+      document.getElementById("detailStats").textContent = offlineCount > 0
+        ? `${pl.tracks.length} şarkı • ${offlineCount} çevrimdışı hazır`
+        : `${pl.tracks.length} şarkı`;
+
+      const dlAllBtn = document.getElementById("downloadAllBtn");
+      if (dlAllBtn) {
+        dlAllBtn.style.display = isOfflineMode ? "inline-flex" : "none";
+      }
+
+      const list = document.getElementById("detailTrackList");
+      list.innerHTML = "";
+
+      if (pl.tracks.length === 0) {
+        list.innerHTML = `<p style="color:#a8a8a8;padding:18px 0;font-size:0.95rem;">${
+          isFavPl
+            ? "Henüz favori şarkınız yok. Şarkıların yanındaki kalp ikonuna basarak buraya ekleyebilirsiniz."
+            : "Bu çalma listesi henüz boş. Yukarıdaki arama veya link kutusundan şarkı ekleyin."
+        }</p>`;
+        return;
+      }
+
+      pl.tracks.forEach((track, idx) => {
+        const isCurrent = playingPlaylistId === pl.id && currentTrackIndex === idx;
+        const downloaded = isTrackDownloaded(track);
+        const favorited = isTrackFavorited(track);
+        const inAnyList = getPlaylistsContainingTrack(track).length > 0;
+        const trackKey = track.id || `${pl.id}-${idx}`;
+        const downloading = downloadingTrackKeys.has(trackKey);
+
+        let dlIconHTML = ICONS.download(18);
+        if (downloading) dlIconHTML = ICONS.spinner(18);
+        else if (downloaded) dlIconHTML = ICONS.checkCircle(18);
+
+        const showDownloadBtn = isOfflineMode || downloaded || downloading;
+
+        const row = document.createElement("div");
+        row.className = "track-row" + (isCurrent ? " playing" : "");
+        row.onclick = () => {
+          if (isShuffle) rebuildShuffleQueue(pl.tracks.length, idx);
+          playTrack(pl.id, idx);
+        };
+        row.innerHTML = `
+          <div class="track-num">${isCurrent ? ICONS.wave : idx + 1}</div>
+          <img class="track-thumb" src="${track.thumb || FALLBACK_IMG}" onerror="this.src='${FALLBACK_IMG}'" alt="" />
+          <div class="track-info">
+            <div class="track-title">${track.title}</div>
+            <div class="track-artist">
+              <span>${track.artist}</span>
+              ${downloaded ? `<span class="offline-pill">✓ İndirildi</span>` : ""}
+            </div>
+          </div>
+          <div class="track-row-actions">
+            <button class="icon-btn ${favorited ? "favorited" : ""}" onclick="handleTrackFavoriteClick('${pl.id}', ${idx}, event)" title="${favorited ? "Favorilerden çıkar" : "Favorilere ekle"}">
+              ${ICONS.heart(favorited, 18)}
+            </button>
+            <button class="icon-btn ${inAnyList ? "in-playlist" : ""}" onclick="handlePlusButtonFromPlaylist('${pl.id}', ${idx}, event)" title="${inAnyList ? "Listeden kaldır / Liste seç" : "Listeye ekle"}">
+              ${ICONS.plus}
+            </button>
+            ${showDownloadBtn ? `
+              <button class="icon-btn ${downloaded ? "downloaded" : ""}" onclick="handleTrackDownloadClick('${pl.id}', ${idx}, event)" title="${downloaded ? "İndirildi (Silmek için dokun)" : "Cihaza İndir"}">
+                ${dlIconHTML}
+              </button>
+            ` : ""}
+            <button class="icon-btn danger" onclick="removeTrack(${idx}, event)" title="Listeden çıkar">
+              ${ICONS.trash}
+            </button>
+          </div>
+        `;
+        list.appendChild(row);
+      });
+    }
+
+    initIcons();
+    renderHomeGrid();
+    checkOnlineAndServerStatus(false);
+    syncOfflineStorage();
+  </script>
+</body>
+</html>
