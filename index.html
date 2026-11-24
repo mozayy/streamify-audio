@@ -51,7 +51,6 @@
       flex-shrink: 0;
     }
 
-    /* Üst Gezinme Çubuğu */
     .topbar {
       height: 58px;
       padding: 0 12px;
@@ -197,7 +196,6 @@
     .nav-home-pill:hover { background: var(--bg-hover); }
     .nav-home-pill:active { transform: scale(0.97); }
 
-    /* Üst Bar Hemen Altında Açılan Canlı Arama Alanı */
     .search-drawer {
       display: none;
       width: 100%;
@@ -315,7 +313,6 @@
       margin-top: 2px;
     }
 
-    /* Ana Kaydırma Alanı */
     .page-scroll {
       flex: 1;
       overflow-y: auto;
@@ -342,7 +339,6 @@
       to { opacity: 1; transform: translateY(0); }
     }
 
-    /* Bulut Sunucu Uyanma & Çevrimdışı Şeritleri */
     .server-wake-banner {
       display: none;
       align-items: center;
@@ -405,7 +401,6 @@
       white-space: nowrap;
     }
 
-    /* Hızlı Link Aktarma Kutusu */
     .import-card {
       background: rgba(255, 255, 255, 0.04);
       border: 1px solid rgba(255, 255, 255, 0.08);
@@ -498,7 +493,6 @@
     .btn-secondary:hover { background: var(--bg-hover); }
     .btn-secondary:active { transform: scale(0.97); }
 
-    /* Bölüm Başlığı, Yeni Playlist ve Karışık Çal */
     .section-header {
       display: flex;
       flex-wrap: wrap;
@@ -547,7 +541,6 @@
       color: var(--accent);
     }
 
-    /* Ana Sayfa Eşit Boyutlu Playlist Kartları Izgarası */
     .playlist-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -674,7 +667,6 @@
       text-overflow: ellipsis;
     }
 
-    /* Playlist Detay Sayfası */
     .detail-top-actions {
       display: flex;
       align-items: center;
@@ -743,7 +735,6 @@
       font-size: 0.95rem;
     }
 
-    /* Şarkı Satırları */
     .track-list {
       display: flex;
       flex-direction: column;
@@ -854,7 +845,6 @@
     }
     .icon-btn.danger:hover { color: var(--danger); }
 
-    /* Liste Seçici Modal */
     .picker-backdrop {
       position: fixed;
       inset: 0;
@@ -1044,7 +1034,6 @@
       outline: none;
     }
 
-    /* Alt Mini Oynatıcı */
     .player-bar {
       position: fixed;
       bottom: 0;
@@ -1126,7 +1115,6 @@
       color: var(--text-secondary);
     }
 
-    /* Spotify Tarzı Tam Ekran Oynatıcı */
     .full-player {
       position: fixed;
       inset: 0;
@@ -1372,11 +1360,9 @@
 
   <div class="toast" id="toast">Bildirim</div>
 
-  <!-- Çift Ses Motoru -->
   <audio id="audioPlayer" preload="auto"></audio>
   <audio id="preloadPlayer" preload="auto"></audio>
 
-  <!-- Çalma Listesi Seçici Modal (+ Butonuna Basılınca Açılır) -->
   <div class="picker-backdrop" id="playlistPickerModal" onclick="closePlaylistPicker(event)">
     <div class="picker-card" onclick="event.stopPropagation()">
       <div class="picker-header">
@@ -1392,7 +1378,6 @@
     </div>
   </div>
 
-  <!-- Üst Başlık (Sizin Logonuzla) -->
   <header class="topbar">
     <button class="brand-btn" onclick="goHome()">
       <span class="brand-badge has-custom-logo" id="brandIcon">
@@ -1418,7 +1403,6 @@
     </div>
   </header>
 
-  <!-- Üst Barın Hemen Altında Açılan Canlı Arama Alanı -->
   <div class="search-drawer" id="topSearchDrawer">
     <div class="search-drawer-inner">
       <div class="live-search-box">
@@ -1438,17 +1422,14 @@
     </div>
   </div>
 
-  <!-- Ana İçerik Alanı -->
   <div class="page-scroll">
     <div class="container">
 
-      <!-- Bulut Sunucu Uyanma Durumu Şeridi (Yalnızca Çevrimiçi Moddayken Görünür) -->
       <div class="server-wake-banner" id="serverWakeBanner">
         <span>Bulut sunucu uyandırılıyor, birkaç saniye içinde otomatik bağlanacak...</span>
         <button class="wake-termux-btn" onclick="checkOnlineAndServerStatus(true)">Kontrol Et</button>
       </div>
 
-      <!-- Çevrimdışı Mod & PWA Yükleme Şeridi -->
       <div class="offline-banner" id="offlineBanner">
         <span id="offlineBannerText">Çevrimdışı mod açık: İndirilen şarkılar internetsiz bile çalar.</span>
         <button class="pwa-install-btn" id="pwaInstallBtn" style="display:none" onclick="triggerPwaInstall()">
@@ -1456,7 +1437,6 @@
         </button>
       </div>
 
-      <!-- SAYFA 1: ANA SAYFA -->
       <section id="homeView" class="view-section active">
         <div class="import-card">
           <div class="import-card-title">
@@ -1494,7 +1474,6 @@
         <div class="playlist-grid" id="playlistGrid"></div>
       </section>
 
-      <!-- SAYFA 2: PLAYLIST DETAY SAYFASI -->
       <section id="playlistView" class="view-section">
         <div class="detail-top-actions">
           <button class="icon-btn danger" id="deletePlaylistBtn" onclick="deleteCurrentPlaylist()" title="Listeyi Sil"></button>
@@ -1541,7 +1520,6 @@
     </div>
   </div>
 
-  <!-- Alt Mini Oynatıcı -->
   <footer class="player-bar" onclick="openFullPlayer()">
     <div class="now-playing">
       <img id="npThumb" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100' fill='%23181818'%3E%3Crect width='100' height='100'/%3E%3C/svg%3E" alt="Kapak" />
@@ -1564,7 +1542,6 @@
     </div>
   </footer>
 
-  <!-- Spotify Tarzı Tam Ekran Oynatıcı -->
   <div class="full-player" id="fullPlayerOverlay">
     <div class="fp-top-bar">
       <button class="fp-round-btn" id="fpCloseBtn" onclick="closeFullPlayer()" title="Küçült"></button>
@@ -1648,7 +1625,7 @@
     const ALL_TRACKS_ID = "__all__";
     const OFFLINE_MODE_KEY = "streamify_offline_mode_v1";
     const OFFLINE_IDS_BACKUP_KEY = "streamify_offline_ids_v1";
-    const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Crect width='200' height='200' fill='%23181818'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='%231db954' font-size='64'%3E%E2%99%AA%3C/text%3E%3C/svg%3E";
+    const FALLBACK_IMG = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/200%27 height='200'%3E%3Crect width='200' height='200' fill='%23181818'/%3E%3Ctext x='50%25' y='55%25' dominant-baseline='middle' text-anchor='middle' fill='%231db954' font-size='64'%3E%E2%99%AA%3C/text%3E%3C/svg%3E";
 
     const audio = document.getElementById("audioPlayer");
     const preloadAudio = document.getElementById("preloadPlayer");
@@ -1674,7 +1651,6 @@
 
     ensureFavoritesPlaylist();
 
-    // İnternet yoksa uygulama doğrudan çevrimdışı modda açılır
     let isOfflineMode = !navigator.onLine || localStorage.getItem(OFFLINE_MODE_KEY) === "true";
     if (!navigator.onLine) {
       localStorage.setItem(OFFLINE_MODE_KEY, "true");
@@ -1699,12 +1675,22 @@
     let isBuffering = false;
     let lastVolume = 0.85;
     let retryCount = 0;
+    let consecutiveErrorSkips = 0;
 
     let liveSearchResults = [];
     let searchDebounceTimer = null;
     let searchAbortController = null;
 
-    /* ---------------- BULUT SUNUCU (RENDER) BAĞLANTI & UYANDIRMA KONTROLÜ ---------------- */
+    function buildStreamUrl(track, refresh = false) {
+      const params = new URLSearchParams();
+      if (refresh) params.set("refresh", "1");
+      if (track && track.title) params.set("title", track.title);
+      if (track && track.artist) params.set("artist", track.artist);
+      const qs = params.toString();
+      return `/stream/${track.videoId}${qs ? "?" + qs : ""}`;
+    }
+
+    /* ---------------- BULUT SUNUCU BAĞLANTI KONTROLÜ ---------------- */
     async function checkOnlineAndServerStatus(manualNotify = false) {
       const wakeBanner = document.getElementById("serverWakeBanner");
       if (!wakeBanner) return;
@@ -1737,7 +1723,7 @@
         serverWakeTimer = setTimeout(() => checkOnlineAndServerStatus(false), 4000);
       }
       if (manualNotify) {
-        showToast("Render sunucusu uyandırılıyor, birazdan hazır olacak...");
+        showToast("Bulut sunucu uyandırılıyor, birazdan hazır olacak...");
       }
     }
 
@@ -2265,6 +2251,7 @@
       standalonePlayingTrack = trackObj;
       playingPlaylistId = null;
       currentTrackIndex = -1;
+      consecutiveErrorSkips = 0;
       startAudioForTrack(trackObj, "Arama Sonucu");
     }
 
@@ -2390,6 +2377,11 @@
         return;
       }
 
+      if (!navigator.onLine) {
+        showToast("Yeni şarkı indirmek için internet bağlantısı gerekir.");
+        return;
+      }
+
       downloadingTrackKeys.add(trackKey);
       refreshActiveView();
       updateFullPlayerDownloadBtn();
@@ -2400,12 +2392,14 @@
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             videoId: track.videoId,
-            searchQuery: track.searchQuery
+            searchQuery: track.searchQuery,
+            title: track.title,
+            artist: track.artist
           })
         });
         const data = await res.json();
         if (!res.ok) {
-          showToast(data.error || "İndirme başarısız.");
+          showToast(data.error || "Bu şarkı şu an indirilemedi.");
           return;
         }
         if (data.videoId) {
@@ -2413,7 +2407,7 @@
           if (data.thumb && (!track.thumb || track.thumb.startsWith("data:"))) {
             track.thumb = data.thumb;
           }
-          const audioResp = await fetch(`/stream/${data.videoId}`);
+          const audioResp = await fetch(buildStreamUrl(track, false));
           if (!audioResp.ok) throw new Error("Ses verisi okunamadı.");
           const audioBlob = await audioResp.blob();
           await saveBlobToIDB(data.videoId, audioBlob);
@@ -2424,7 +2418,7 @@
           showToast(`"${track.title}" cihaza kaydedildi`);
         }
       } catch (err) {
-        showToast("İndirme için internet bağlantısı gerekir.");
+        showToast("İndirme sırasında bağlantı kesildi, tekrar deneyin.");
       } finally {
         downloadingTrackKeys.delete(trackKey);
         syncOfflineUI();
@@ -2576,6 +2570,7 @@
     audio.addEventListener("playing", () => {
       isBuffering = false;
       retryCount = 0;
+      consecutiveErrorSkips = 0;
       updatePlayButtons(true, false);
     });
 
@@ -2612,14 +2607,23 @@
       const track = getActivePlayingTrack();
       if (!activeBlobUrl && track && track.videoId && retryCount < 1) {
         retryCount++;
-        audio.src = `/stream/${track.videoId}?refresh=1`;
+        audio.src = buildStreamUrl(track, true);
         audio.play().catch(() => {});
         return;
       }
       retryCount = 0;
       isBuffering = false;
       updatePlayButtons(false, false);
-      showToast("Bu parça çalınamadı (çevrimdışı indirilmemiş veya bağlantı yok).");
+
+      const pl = getVirtualOrRealPlaylist(playingPlaylistId);
+      if (pl && pl.tracks.length > 1 && consecutiveErrorSkips < 2) {
+        consecutiveErrorSkips++;
+        showToast(`"${track ? track.title : "Parça"}" atlanıyor...`);
+        setTimeout(() => playNext(), 650);
+      } else {
+        consecutiveErrorSkips = 0;
+        showToast("Bu parça şu an çalınamadı.");
+      }
     });
 
     /* Playlist Oluşturma & Silme */
@@ -2764,6 +2768,7 @@
       }
       globalShuffleTracks = pool;
       isShuffle = true;
+      consecutiveErrorSkips = 0;
       document.getElementById("fpShuffleBtn").classList.add("active");
 
       const activeTrack = getActivePlayingTrack();
@@ -2777,7 +2782,6 @@
       playTrack(ALL_TRACKS_ID, startIdx);
     }
 
-    /* Karışık Çalma Kuyruğu */
     function rebuildShuffleQueue(length, startIdx = -1) {
       const indices = Array.from({ length }, (_, i) => i).filter(i => i !== startIdx);
       for (let i = indices.length - 1; i > 0; i--) {
@@ -2829,7 +2833,7 @@
             nextTrack.thumb = data.thumb;
           }
           saveState();
-          const targetSrc = `/stream/${nextTrack.videoId}`;
+          const targetSrc = buildStreamUrl(nextTrack, false);
           if (!preloadAudio.src.endsWith(targetSrc)) {
             preloadAudio.src = targetSrc;
             preloadAudio.load();
@@ -2845,6 +2849,7 @@
         return;
       }
       isShuffle = false;
+      consecutiveErrorSkips = 0;
       document.getElementById("fpShuffleBtn").classList.remove("active");
       playTrack(pl.id, 0);
     }
@@ -2856,6 +2861,7 @@
         return;
       }
       isShuffle = true;
+      consecutiveErrorSkips = 0;
       document.getElementById("fpShuffleBtn").classList.add("active");
       rebuildShuffleQueue(pl.tracks.length);
       showToast("Karışık çalma başlatıldı");
@@ -2908,12 +2914,19 @@
         }
       }
 
+      if (!navigator.onLine) {
+        isBuffering = false;
+        updatePlayButtons(false, false);
+        showToast("İnternet yok — Yalnızca indirilen şarkılar çalınabilir.");
+        return;
+      }
+
       if (!track.videoId) {
         try {
           const res = await fetch("/api/prepare", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ searchQuery: track.searchQuery })
+            body: JSON.stringify({ searchQuery: track.searchQuery || `${track.title} ${track.artist} audio` })
           });
           if (!res.ok) throw new Error();
           const data = await res.json();
@@ -2926,12 +2939,12 @@
         } catch (e) {
           isBuffering = false;
           updatePlayButtons(false, false);
-          showToast("Çevrimdışı indirilmemiş şarkı için internet gereklidir.");
+          showToast("Şarkı kaynağı bulunamadı.");
           return;
         }
       }
 
-      audio.src = `/stream/${track.videoId}`;
+      audio.src = buildStreamUrl(track, false);
       audio.play().catch(() => {
         isBuffering = false;
         updatePlayButtons(false, false);
@@ -3140,6 +3153,7 @@
         const row = document.createElement("div");
         row.className = "track-row" + (isCurrent ? " playing" : "");
         row.onclick = () => {
+          consecutiveErrorSkips = 0;
           if (isShuffle) rebuildShuffleQueue(pl.tracks.length, idx);
           playTrack(pl.id, idx);
         };
