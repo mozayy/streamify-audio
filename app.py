@@ -14,6 +14,12 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 CACHE_DIR = os.path.join(tempfile.gettempdir(), "streamify_audio_cache")
 os.makedirs(CACHE_DIR, exist_ok=True)
 
+PIPED_INSTANCES = [
+    "https://pipedapi.kavin.rocks",
+    "https://api.piped.private.coffee",
+    "https://pipedapi.adminforge.de",
+]
+
 
 def find_custom_logo():
     candidates = [
@@ -42,7 +48,6 @@ def build_logo_png(size=512):
                 img.save(buf, format="PNG")
                 buf.seek(0)
                 return buf
-        # Özel logo yoksa varsayılan yeşil ikon üret
         img = Image.new("RGBA", (size, size), (29, 185, 84, 255))
         draw = ImageDraw.Draw(img)
         bars = [0.28, 0.42, 0.56, 0.42, 0.28]
@@ -63,20 +68,27 @@ def build_logo_png(size=512):
         return None
 
 
-def get_ydl_base_opts():
+def get_ydl_base_opts(clients=None):
     opts = {
         "quiet": True,
         "no_warnings": True,
         "nocheckcertificate": True,
+        "geo_bypass": True,
+        "socket_timeout": 15,
+        "retries": 2,
         "extractor_args": {
             "youtube": {
-                "player_client": ["android", "ios", "web"]
+                "player_client": clients or ["tv_embedded", "android_vr", "mweb", "web_safari"]
             }
         }
     }
-    cookie_path = os.path.join(BASE_DIR, "cookies.txt")
-    if os.path.exists(cookie_path):
-        opts["cookiefile"] = cookie_path
+    for cookie_candidate in [
+        os.path.join(BASE_DIR, "cookies.txt"),
+        os.path.join(tempfile.gettempdir(), "cookies.txt"),
+    ]:
+        if os.path.exists(cookie_candidate) and os.path.getsize(cookie_candidate) > 50:
+            opts["cookiefile"] = cookie_candidate
+            break
     return opts
 
 
@@ -86,12 +98,81 @@ def find_cached_audio(video_id):
         return None
     matches = glob.glob(os.path.join(CACHE_DIR, f"{safe_id}.*"))
     for m in matches:
-        if os.path.getsize(m) > 1024:
+        if os.path.getsize(m) > 2048:
             return m
     return None
 
 
-def download_audio_to_cache(video_id, force_refresh=False):
+def fetch_oembed_meta(video_id):
+    try:
+        url = f"https://www.youtube.com/oembed?url=https://www.youtube.com/watch?v={video_id}&format=json"
+        resp = requests.get(url, timeout=6)
+        if resp.status_code == 200:
+            data = resp.json()
+            return (data.get("title") or "").strip(), (data.get("author_name") or "").strip()
+    except Exception:
+        pass
+    return "", ""
+
+
+def try_download_single_id(source_vid, save_as_vid):
+    out_tmpl = os.path.join(CACHE_DIR, f"{save_as_vid}.%(ext)s")
+    url = f"https://www.youtube.com/watch?v={source_vid}"
+
+    client_groups = [
+        ["tv_embedded", "android_vr"],
+        ["mweb", "web_safari"],
+        ["ios", "android"],
+    ]
+
+    for clients in client_groups:
+        ydl_opts = get_ydl_base_opts(clients=clients)
+        ydl_opts.update({
+            "format": "bestaudio[ext=m4a]/bestaudio[acodec^=mp4a]/bestaudio[ext=mp3]/bestaudio/best[height<=360]",
+            "outtmpl": out_tmpl,
+            "noplaylist": True,
+        })
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                ydl.download([url])
+            found = find_cached_audio(save_as_vid)
+            if found:
+                return found
+        except Exception:
+            continue
+
+    # Son çare: Piped API üzerinden doğrudan m4a ses akışı çek
+    for base_api in PIPED_INSTANCES:
+        try:
+            resp = requests.get(f"{base_api}/streams/{source_vid}", timeout=7)
+            if resp.status_code != 200:
+                continue
+            data = resp.json()
+            audio_streams = data.get("audioStreams") or []
+            mp4_streams = [s for s in audio_streams if "mp4" in (s.get("mimeType") or "")]
+            chosen = (mp4_streams or audio_streams)
+            if not chosen:
+                continue
+            chosen.sort(key=lambda x: x.get("bitrate") or 0, reverse=True)
+            stream_url = chosen[0].get("url")
+            if not stream_url:
+                continue
+            audio_resp = requests.get(stream_url, stream=True, timeout=20)
+            if audio_resp.status_code in (200, 206):
+                target_file = os.path.join(CACHE_DIR, f"{save_as_vid}.m4a")
+                with open(target_file, "wb") as f:
+                    for chunk in audio_resp.iter_content(chunk_size=65536):
+                        if chunk:
+                            f.write(chunk)
+                if os.path.exists(target_file) and os.path.getsize(target_file) > 2048:
+                    return target_file
+        except Exception:
+            continue
+
+    return None
+
+
+def download_audio_to_cache(video_id, force_refresh=False, title_hint="", artist_hint=""):
     safe_id = re.sub(r"[^a-zA-Z0-9_-]", "", video_id or "")
     if not safe_id:
         return None
@@ -107,19 +188,36 @@ def download_audio_to_cache(video_id, force_refresh=False):
             except OSError:
                 pass
 
-    out_tmpl = os.path.join(CACHE_DIR, f"{safe_id}.%(ext)s")
-    ydl_opts = get_ydl_base_opts()
-    ydl_opts.update({
-        "format": "bestaudio[ext=m4a]/bestaudio[ext=webm]/bestaudio",
-        "outtmpl": out_tmpl,
-        "noplaylist": True,
-    })
+    # 1. Doğrudan istenen video kimliğini dene
+    direct = try_download_single_id(safe_id, safe_id)
+    if direct:
+        return direct
 
-    url = f"https://www.youtube.com/watch?v={safe_id}"
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        ydl.download([url])
+    # 2. Video engelli/silinmişse şarkı adıyla alternatif engelsiz sürüm ara
+    title = (title_hint or "").strip()
+    artist = (artist_hint or "").strip()
+    if not title:
+        title, artist = fetch_oembed_meta(safe_id)
 
-    return find_cached_audio(safe_id)
+    if title:
+        clean_title = re.sub(r"\(.*?\)|\[.*?\]", "", title).strip() or title
+        query = f"{clean_title} {artist} audio".strip()
+        ydl_opts = get_ydl_base_opts(clients=["tv_embedded", "mweb"])
+        ydl_opts.update({"extract_flat": True})
+        try:
+            with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                info = ydl.extract_info(f"ytsearch5:{query}", download=False)
+                for entry in (info.get("entries") or []):
+                    alt_id = entry.get("id")
+                    if not alt_id or alt_id == safe_id:
+                        continue
+                    alt_file = try_download_single_id(alt_id, safe_id)
+                    if alt_file:
+                        return alt_file
+        except Exception:
+            pass
+
+    return None
 
 
 def format_duration(seconds):
@@ -253,7 +351,7 @@ def manifest():
 @app.route("/sw.js")
 def service_worker():
     sw_code = """
-const CACHE_NAME = 'streamify-shell-v2';
+const CACHE_NAME = 'streamify-shell-v3';
 const SHELL_ASSETS = ['/', '/manifest.json', '/logo.png', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (event) => {
@@ -299,7 +397,7 @@ def api_search():
     if len(q) < 2:
         return jsonify({"results": []})
 
-    ydl_opts = get_ydl_base_opts()
+    ydl_opts = get_ydl_base_opts(clients=["tv_embedded", "mweb"])
     ydl_opts.update({"extract_flat": True})
 
     results = []
@@ -308,17 +406,18 @@ def api_search():
             info = ydl.extract_info(f"ytsearch12:{q}", download=False)
             for entry in (info.get("entries") or []):
                 vid = entry.get("id")
-                if not vid:
+                title = entry.get("title") or ""
+                if not vid or title in ("[Deleted video]", "[Private video]"):
                     continue
                 results.append({
                     "videoId": vid,
-                    "title": entry.get("title") or "Bilinmeyen Şarkı",
+                    "title": title or "Bilinmeyen Şarkı",
                     "artist": entry.get("uploader") or entry.get("channel") or "YouTube",
                     "duration": format_duration(entry.get("duration")),
                     "thumb": extract_best_thumb(entry),
                 })
-    except Exception as e:
-        return jsonify({"results": [], "error": str(e)}), 500
+    except Exception:
+        return jsonify({"results": [], "error": "Arama sırasında geçici bir sorun oluştu."}), 500
 
     return jsonify({"results": results})
 
@@ -341,7 +440,7 @@ def api_import():
         except Exception as e:
             return jsonify({"error": str(e)}), 400
 
-    ydl_opts = get_ydl_base_opts()
+    ydl_opts = get_ydl_base_opts(clients=["tv_embedded", "mweb"])
     ydl_opts.update({"extract_flat": "in_playlist"})
 
     try:
@@ -354,12 +453,13 @@ def api_import():
                 if not entry:
                     continue
                 vid = entry.get("id")
-                if not vid:
+                title = (entry.get("title") or "").strip()
+                if not vid or title in ("[Deleted video]", "[Private video]", ""):
                     continue
                 tracks.append({
                     "videoId": vid,
                     "searchQuery": None,
-                    "title": entry.get("title") or "Bilinmeyen Şarkı",
+                    "title": title,
                     "artist": entry.get("uploader") or entry.get("channel") or "YouTube",
                     "thumb": extract_best_thumb(entry),
                 })
@@ -379,8 +479,8 @@ def api_import():
                 "thumb": extract_best_thumb(info),
             }
         })
-    except Exception as e:
-        return jsonify({"error": f"Bağlantı çözümlenemedi: {str(e)}"}), 400
+    except Exception:
+        return jsonify({"error": "Bağlantı çözümlenemedi. Liste herkese açık olmalıdır."}), 400
 
 
 @app.route("/api/prepare", methods=["POST"])
@@ -391,17 +491,20 @@ def api_prepare():
     thumb = ""
 
     if not video_id and search_query:
-        ydl_opts = get_ydl_base_opts()
+        ydl_opts = get_ydl_base_opts(clients=["tv_embedded", "mweb"])
         ydl_opts.update({"extract_flat": True})
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(f"ytsearch1:{search_query}", download=False)
-                entries = info.get("entries") or []
+                info = ydl.extract_info(f"ytsearch3:{search_query}", download=False)
+                entries = [
+                    e for e in (info.get("entries") or [])
+                    if e and e.get("id") and e.get("title") not in ("[Deleted video]", "[Private video]")
+                ]
                 if entries:
                     video_id = entries[0].get("id")
                     thumb = extract_best_thumb(entries[0])
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+        except Exception:
+            return jsonify({"error": "Şarkı araması başarısız oldu."}), 500
 
     if not video_id:
         return jsonify({"error": "Şarkı bulunamadı."}), 404
@@ -415,13 +518,20 @@ def api_prepare():
 @app.route("/stream/<video_id>")
 def stream_audio(video_id):
     refresh = request.args.get("refresh") == "1"
+    title_hint = request.args.get("title") or ""
+    artist_hint = request.args.get("artist") or ""
     try:
-        file_path = download_audio_to_cache(video_id, force_refresh=refresh)
+        file_path = download_audio_to_cache(
+            video_id,
+            force_refresh=refresh,
+            title_hint=title_hint,
+            artist_hint=artist_hint,
+        )
         if not file_path or not os.path.exists(file_path):
             return jsonify({"error": "Ses dosyası hazırlanamadı."}), 404
         return send_file(file_path, conditional=True)
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    except Exception:
+        return jsonify({"error": "Ses akışı başlatılamadı."}), 500
 
 
 @app.route("/api/offline/save", methods=["POST"])
@@ -429,30 +539,38 @@ def api_offline_save():
     body = request.get_json(silent=True) or {}
     video_id = body.get("videoId")
     search_query = (body.get("searchQuery") or "").strip()
+    title_hint = (body.get("title") or "").strip()
+    artist_hint = (body.get("artist") or "").strip()
     thumb = ""
 
-    if not video_id and search_query:
-        ydl_opts = get_ydl_base_opts()
+    if not video_id and (search_query or title_hint):
+        q = search_query or f"{title_hint} {artist_hint} audio".strip()
+        ydl_opts = get_ydl_base_opts(clients=["tv_embedded", "mweb"])
         ydl_opts.update({"extract_flat": True})
         try:
             with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-                info = ydl.extract_info(f"ytsearch1:{search_query}", download=False)
-                entries = info.get("entries") or []
+                info = ydl.extract_info(f"ytsearch3:{q}", download=False)
+                entries = [
+                    e for e in (info.get("entries") or [])
+                    if e and e.get("id") and e.get("title") not in ("[Deleted video]", "[Private video]")
+                ]
                 if entries:
                     video_id = entries[0].get("id")
                     thumb = extract_best_thumb(entries[0])
-        except Exception as e:
-            return jsonify({"error": str(e)}), 500
+        except Exception:
+            return jsonify({"error": "Şarkı bulunamadı."}), 500
 
     if not video_id:
         return jsonify({"error": "Şarkı bulunamadı."}), 404
 
-    try:
-        file_path = download_audio_to_cache(video_id, force_refresh=False)
-        if not file_path:
-            return jsonify({"error": "Ses indirilemedi."}), 500
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    file_path = download_audio_to_cache(
+        video_id,
+        force_refresh=False,
+        title_hint=title_hint,
+        artist_hint=artist_hint,
+    )
+    if not file_path:
+        return jsonify({"error": "Bu şarkı şu an indirilemedi, lütfen tekrar deneyin."}), 500
 
     if not thumb:
         thumb = f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
